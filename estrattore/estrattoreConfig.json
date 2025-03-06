@@ -1,0 +1,11 @@
+{
+    "startAnnotation" : "//",
+    "miniSLID" : "miniSL",
+    "controlStatements" : {
+        "for": "for",
+        "call": "call",
+        "if": "if",
+        "else": "else",
+        "end": "end"
+    }
+}
