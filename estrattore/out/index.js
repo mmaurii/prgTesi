@@ -1,38 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
-function indentMiniSLCode(code) {
-    var lines = code.split("\n").map(function (line) { return line.trim(); }); // Divide in righe e rimuove spazi extra
-    var indentLevel = 0;
-    var indentSize = 2; // Spazi per indentazione
-    var formattedCode = "";
-    for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
-        var line = lines_1[_i];
-        if (line === "")
-            continue; // Salta righe vuote
-        // Riduci indentazione se la riga chiude una parentesi graffa
-        if (line.startsWith("}")) {
-            indentLevel = Math.max(0, indentLevel - 1);
-        }
-        // Aggiungi indentazione
-        formattedCode += " ".repeat(indentLevel * indentSize) + line + "\n";
-        // Aumenta indentazione dopo una parentesi aperta
-        if (line.endsWith("{")) {
-            indentLevel++;
-        }
-    }
-    return formattedCode;
-}
 var Extractor = /** @class */ (function () {
     function Extractor() {
         this.miniSLServices = "";
+        this.extractorConfigFilePath = "./estrattoreConfig.json";
+        this.inputAnnotatedCode = "./input.ts";
     }
-    Extractor.prototype.main = function (path) {
-        if (path === void 0) { path = "./input.ts"; }
+    Extractor.prototype.extract = function (path) {
+        if (path === void 0) { path = this.inputAnnotatedCode; }
         var miniSLCode = "\n";
         try {
             //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
-            var config_1 = JSON.parse(fs.readFileSync('./estrattoreConfig.json', 'utf-8'));
+            var config_1 = JSON.parse(fs.readFileSync(this.extractorConfigFilePath, 'utf-8'));
             var fileContent = fs.readFileSync(path, 'utf-8');
             var lines = fileContent.split('\n');
             var annotations = lines.filter(function (line) { return line.includes("".concat(config_1.startAnnotation, " ").concat(config_1.miniSLID, ":")); });
@@ -101,7 +81,7 @@ var Extractor = /** @class */ (function () {
             console.error("Errore durante la lettura del file: ", error);
         }
         miniSLCode = this.miniSLServices + miniSLCode;
-        console.log(indentMiniSLCode(miniSLCode));
+        console.log(this.indentMiniSLCode(miniSLCode));
     };
     Extractor.prototype.writeFor = function (params) {
         var variables = params.split(",");
@@ -156,7 +136,29 @@ var Extractor = /** @class */ (function () {
     Extractor.prototype.writeCloseStatement = function () {
         return "}\n";
     };
+    Extractor.prototype.indentMiniSLCode = function (code) {
+        var lines = code.split("\n").map(function (line) { return line.trim(); }); // Divide in righe e rimuove spazi extra
+        var indentLevel = 0;
+        var indentSize = 2; // Spazi per indentazione
+        var formattedCode = "";
+        for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
+            var line = lines_1[_i];
+            if (line === "")
+                continue; // Salta righe vuote
+            // Riduci indentazione se la riga chiude una parentesi graffa
+            if (line.startsWith("}")) {
+                indentLevel = Math.max(0, indentLevel - 1);
+            }
+            // Aggiungi indentazione
+            formattedCode += " ".repeat(indentLevel * indentSize) + line + "\n";
+            // Aumenta indentazione dopo una parentesi aperta
+            if (line.endsWith("{")) {
+                indentLevel++;
+            }
+        }
+        return formattedCode;
+    };
     return Extractor;
 }());
-new Extractor().main();
+new Extractor().extract();
 //# sourceMappingURL=index.js.map

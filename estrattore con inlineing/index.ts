@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as acorn from "acorn";
 
 interface Config {
     startAnnotation: string;
@@ -11,27 +12,35 @@ interface Config {
         "else": string;
         "end": string;
         "function": string;
+        "invoke": string;
     };
+}
+
+async function readFile(path: string): Promise<string> {
+    try {
+        const data = await fs.promises.readFile(path, 'utf-8');
+        return data;
+    } catch (error) {
+        console.error('Errore nella lettura del file:', error);
+    }
 }
 
 class Extractor {
     private miniSLServices = "";
-    private miniSLCodeFunction = new Map();
+    private miniSLFunctionCode = new Map();
     private annotations;
     private config: Config;
     private annotatedCodeFilePath = "./annotatedCode/input0.ts";
     private extractorConfigFilePath = './estrattoreConfig.json';
 
-    public extract(path: string = this.annotatedCodeFilePath): void {
+    public async extract(path: string = this.annotatedCodeFilePath): Promise<void> {
         let miniSLCode = "\n";
 
         try {
             //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
-            this.config = JSON.parse(fs.readFileSync(this.extractorConfigFilePath, 'utf-8'));
+            this.config = JSON.parse(await readFile(this.extractorConfigFilePath));
 
-            const fileContent = fs.readFileSync(path, 'utf-8');
-            const lines = fileContent.split('\n');
-
+            const lines = (await readFile(this.annotatedCodeFilePath)).split("\n");
             // Estraggo le annotazioni
             this.annotations = lines.filter(line => this.findAnnotation(line, this.config.miniSLID, this.config.startAnnotation, this.config.endAnnotation));
 
@@ -40,7 +49,10 @@ class Extractor {
                 return;
             }
 
-            //leggo le annotazioni e genero il codice miniSL
+            //leggo le annotazioni delle funzioni e genero il codice miniSL
+            this.readFunctionAnnotations();
+
+            //leggo le annotazioni del main e genero il codice miniSL
             miniSLCode += this.readAnnotations().join("");
         } catch (error) {
             console.error("Errore durante la lettura del file: ", error);
@@ -48,8 +60,9 @@ class Extractor {
 
         miniSLCode = this.miniSLServices + miniSLCode;
 
+        //indenting code
         let indentedCode = this.indentMiniSLCode(miniSLCode);
-        
+
         console.log(indentedCode);
     }
 
@@ -62,15 +75,25 @@ class Extractor {
         return `for(${variables[0]} in range(0, ${variables[1]})) {\n`;
     }
 
-    private writeIf(params: string): string {
-        let variable = params;
-        if (variable.endsWith(")")) {
-            const startIndex = variable.indexOf("(");
-            const fnName = variable.substring(0, startIndex);
-            const variables = variable.substring(startIndex + 1, variable.length - 1);
-            return `if(${this.writeCall(fnName, variables)}) {\n`;
+    private writeIf(guards: string): string {
+        const regex = "\(.*?\)"
+            ;
+
+        /*         if(guards.match(regex)) {
+                    guards = guards.slice(guards.indexOf("(") + 1, guards.lastIndexOf(")"));
+                } */
+
+        const ast = acorn.parse(guards, { ecmaVersion: 2020 });
+
+        if (this.validateBooleanAST(ast)) {
+            return `if(${guards}) {\n`;
+        } else {
+            if (guards.match(regex)) {
+                return `if(call ${guards}) {\n`;
+            } else {
+                throw new Error("Invalid if guards");
+            }
         }
-        return `if(${variable}) {\n`;
     }
 
     private writeElse(): string {
@@ -83,20 +106,15 @@ class Extractor {
 
         for (let i = 0; i < variables.length; i++) {
             if (variables[i].match(regex)) {
-                const strFunctionCode = this.miniSLCodeFunction.get(fnName);
-                if(strFunctionCode){
-                    return strFunctionCode;
-                }else{
-                    throw new Error("Function not found");
-                }
+                throw new Error("call can'take Function as parameter");
             }
         }
 
-        if(!this.miniSLServices.includes(`${fnName}`)){
+        if (!this.miniSLServices.includes(`${fnName}`)) {
             this.miniSLServices += `service ${fnName} : (void) -> void;\n`;
-        } 
+        }
 
-        return `call ${fnName}(${variables.join(", ")})`;
+        return `call ${fnName}(${params})`;
     }
 
     private writeMain(params: string): string {
@@ -105,10 +123,10 @@ class Extractor {
         const variablesMapped = variables.map(i => {
             if (i.match(regex)) {
                 i = i.substring(0, i.length - 2);
-                if(!this.miniSLServices.includes(`${i}`)){
+                if (!this.miniSLServices.includes(`${i}`)) {
                     this.miniSLServices += `service ${i} : (void) -> void;\n`;
                 }
-            } 
+            }
             return i;
         });
         return `(${variablesMapped.join(", ")}) => {\n`;
@@ -121,40 +139,40 @@ class Extractor {
     //correggi
     private addFunction(annPosition, fnName: string, params: string): number {
         const variables = params.split(",");
-        const regex = '[()]';
-        const variablesMapped = variables.map(i => {
-            if (i.match(regex)) {
-                i = i.substring(0, i.length - 2);
-                if(!this.miniSLServices.includes(`${i}`)){
-                    this.miniSLServices += `service ${i} : (void) -> void;\n`;
-                }
-            } 
-            return i;
-        });
 
-            
-        let strFunctionCode = `(${variablesMapped.join(", ")}) => {\n`;
-        let managed = this.readAnnotations(annPosition+1);
-        strFunctionCode += managed.join("");
+        let managed = this.readAnnotations(annPosition + 1);
 
-        this.miniSLCodeFunction.set(fnName, strFunctionCode);
-        return managed.length;
+        if (managed.length > 1) {
+            managed.pop(); // Remove last "end" statement)
+
+            this.miniSLFunctionCode.set(fnName, managed.join(""));
+            return managed.length;
+        } else {
+            throw new Error("Function not found or dosn't have a body");
+        }
     }
 
-    private readAnnotations(index=0): String[] {
+    private writeInvoke(fnName: string): string {
+        if (this.miniSLFunctionCode.has(fnName)) {
+            return this.miniSLFunctionCode.get(fnName);
+        } else {
+            throw new Error("Function not found");
+        }
+    }
+
+    private readAnnotations(index = 0): String[] {
         let miniSLCode: String[] = new Array();
         let openedStatements = 0;
         let closedStatements = 0;
 
-/*         for (let i = index; i<this.annotations.length && (openedStatements==0 || openedStatements!=closedStatements);i++) {
- */            
-        for (let i = index; i<this.annotations.length && (openedStatements>=closedStatements);i++) {
+
+        for (let i = index; i < this.annotations.length && (openedStatements >= closedStatements); i++) {
             const ann = this.annotations[i];
             let unspacedAnn = ann.replace(/\s/g, "");
-            unspacedAnn= this.config.endAnnotation.length>0?unspacedAnn.slice(0,-this.config.endAnnotation.length):unspacedAnn;
+            unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
             let startIndex = unspacedAnn.indexOf(`${this.config.startAnnotation}${this.config.miniSLID}:`) + this.config.startAnnotation.length + this.config.miniSLID.length + 1;
             let endIndex = unspacedAnn.indexOf("(", startIndex);
-            
+
             if (endIndex === -1) {
                 const statement = unspacedAnn.substring(startIndex);
                 if (statement === this.config.controlStatements.end) {
@@ -176,18 +194,19 @@ class Extractor {
                     miniSLCode.push(this.writeFor(params));
                     openedStatements++;
                 } else if (statement === this.config.controlStatements.if) {
-                    miniSLCode.push(this.writeIf(params));
+                    const guard = ann.substring(ann.indexOf("(") + 1, ann.lastIndexOf(")"));
+                    miniSLCode.push(this.writeIf(guard));
                     openedStatements++;
-                }else if (statement.startsWith(this.config.controlStatements.call+"main")){            
+                } else if (statement.startsWith(this.config.controlStatements.invoke)) {
+                    const fnName = statement.substring(this.config.controlStatements.invoke.length);
+                    miniSLCode.push(this.writeInvoke(fnName) + "\n");
+                } else if (statement.startsWith(this.config.controlStatements.call + "main")) {
                     miniSLCode.push(this.writeMain(params));
                     openedStatements++;
                 } else if (statement.startsWith(this.config.controlStatements.call)) {
-                    const fnName = statement.substring(4);
+                    const fnName = statement.substring(this.config.controlStatements.call.length);
                     miniSLCode.push(this.writeCall(fnName, params) + "\n");
-                } else if (statement.startsWith(this.config.controlStatements.function)){
-                    const fnName = statement.substring(8);
-                    i += this.addFunction(i, fnName, params);
-                }else {
+                } else {
                     console.error(`Unknown statement: ${statement}`);
                     return;
                 }
@@ -197,17 +216,17 @@ class Extractor {
         return miniSLCode;
     }
 
-    private findAnnotation(line: string, miniSLID: string, startAnnotation: string, endAnnotation: string =""): boolean {
-        if(!miniSLID||!startAnnotation){
+    private findAnnotation(line: string, miniSLID: string, startAnnotation: string, endAnnotation: string = ""): boolean {
+        if (!miniSLID || !startAnnotation) {
             throw new Error("Parameters 'miniSLID' 'startAnnotation' cannot be empty or null");
         }
 
-        if(!endAnnotation){
+        if (!endAnnotation) {
             return line.includes(`${startAnnotation} ${miniSLID}:`);
-        }else{
+        } else {
             let startIndex = line.indexOf(`${startAnnotation} ${miniSLID}:`);
             let endIndex = line.lastIndexOf(`${endAnnotation}`);
-            return startIndex !== -1 && endIndex !== -1 && startIndex+startAnnotation.length+miniSLID.length+2 < endIndex;
+            return startIndex !== -1 && endIndex !== -1 && startIndex + startAnnotation.length + miniSLID.length + 2 < endIndex;
         }
     }
 
@@ -216,28 +235,82 @@ class Extractor {
         let indentLevel = 0;
         const indentSize = 2; // Spazi per indentazione
         let formattedCode = "";
-    
+
         for (let line of lines) {
-        if (line === "") continue; // Salta righe vuote
-    
-        // Riduci indentazione se la riga chiude una parentesi graffa
-        if (line.startsWith("}")) {
-            indentLevel = Math.max(0, indentLevel - 1);
+            if (line === "") continue; // Salta righe vuote
+
+            // Riduci indentazione se la riga chiude una parentesi graffa
+            if (line.startsWith("}")) {
+                indentLevel = Math.max(0, indentLevel - 1);
+            }
+
+            // Aggiungi indentazione
+            formattedCode += " ".repeat(indentLevel * indentSize) + line + "\n";
+
+            // Aumenta indentazione dopo una parentesi aperta
+            if (line.endsWith("{")) {
+                indentLevel++;
+            }
         }
-    
-        // Aggiungi indentazione
-        formattedCode += " ".repeat(indentLevel * indentSize) + line + "\n";
-    
-        // Aumenta indentazione dopo una parentesi aperta
-        if (line.endsWith("{")) {
-            indentLevel++;
-        }
-        }
-    
+
         return formattedCode;
     }
-}
 
+    private validateBooleanAST(ast) {
+        if (!ast || !ast.body || ast.body.length !== 1) return false;
+        const node = ast.body[0];
+        if (node.type !== "ExpressionStatement") return false;
+        return this.isBooleanNode(node.expression);
+    }
+
+    private isBooleanNode(node) {
+        switch (node.type) {
+            case "Literal":
+                return typeof node.value === "boolean";
+            case "LogicalExpression": // &&, ||
+            case "BinaryExpression": // >, <, >=, <=, ==, !=, ===, !==
+                return ["&&", "||", "<", ">", "<=", ">=", "==", "!=", "===", "!=="].includes(node.operator)
+                    && this.isBooleanNode(node.left)
+                    && this.isBooleanNode(node.right);
+            case "UnaryExpression": // !true
+                return node.operator === "!" && this.isBooleanNode(node.argument);
+            case "Identifier":
+                return true; // Assuming variables can be boolean (better to verify in runtime)
+            case "ParenthesizedExpression":
+                return this.isBooleanNode(node.expression);
+            default:
+                return false;
+        }
+    }
+
+    private readFunctionAnnotations() {
+        for (let i = 0; i < this.annotations.length; i++) {
+            const ann = this.annotations[i];
+            let unspacedAnn = ann.replace(/\s/g, "");
+            unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
+            let startIndex = unspacedAnn.indexOf(`${this.config.startAnnotation}${this.config.miniSLID}:`) + this.config.startAnnotation.length + this.config.miniSLID.length + 1;
+            let endIndex = unspacedAnn.indexOf("(", startIndex);
+
+            if (endIndex !== -1) {
+                const statement = unspacedAnn.substring(startIndex, endIndex);
+                startIndex = endIndex + 1;
+                endIndex = unspacedAnn.lastIndexOf(")");
+                const params = unspacedAnn.substring(startIndex, endIndex);
+
+                if (statement.startsWith(this.config.controlStatements.function)) {
+                    const fnName = statement.substring(this.config.controlStatements.function.length);
+                    let miniSLFunctionCode = this.readAnnotations(i+1);
+                    if (miniSLFunctionCode.length > 1) {
+                        this.annotations.splice(i, miniSLFunctionCode.length+1);
+                        miniSLFunctionCode.pop(); // Remove last "end" statement
+                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
+                        i--;
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 new Extractor().extract();
