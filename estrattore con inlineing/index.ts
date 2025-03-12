@@ -32,6 +32,8 @@ class Extractor {
     private config: Config;
     private annotatedCodeFilePath = "./annotatedCode/input0.ts";
     private extractorConfigFilePath = './estrattoreConfig.json';
+    //flag to stop finding annotations
+    private endOfAnnotation = true;
 
     public async extract(path: string = this.annotatedCodeFilePath): Promise<void> {
         let miniSLCode = "\n";
@@ -152,11 +154,17 @@ class Extractor {
         }
     }
 
-    private writeInvoke(fnName: string): string {
+    private getFunctionInvoked(index, fnName: string): string {
         if (this.miniSLFunctionCode.has(fnName)) {
             return this.miniSLFunctionCode.get(fnName);
         } else {
-            throw new Error("Function not found");
+            //cerca l'annotazione della funzione nell'elenco delle annotazioni
+            this.readFunctionAnnotations(index + 1);
+            if (this.miniSLFunctionCode.has(fnName)) {
+                return this.miniSLFunctionCode.get(fnName);
+            } else {
+                throw new Error("Function not found");
+            }
         }
     }
 
@@ -199,7 +207,7 @@ class Extractor {
                     openedStatements++;
                 } else if (statement.startsWith(this.config.controlStatements.invoke)) {
                     const fnName = statement.substring(this.config.controlStatements.invoke.length);
-                    miniSLCode.push(this.writeInvoke(fnName) + "\n");
+                    miniSLCode.push(this.getFunctionInvoked(i, fnName) + "\n");
                 } else if (statement.startsWith(this.config.controlStatements.call + "main")) {
                     miniSLCode.push(this.writeMain(params));
                     openedStatements++;
@@ -283,8 +291,8 @@ class Extractor {
         }
     }
 
-    private readFunctionAnnotations() {
-        for (let i = 0; i < this.annotations.length; i++) {
+    private readFunctionAnnotations(index = 0): void {
+        for (let i = index; i < this.annotations.length && this.endOfAnnotation; i++) {
             const ann = this.annotations[i];
             let unspacedAnn = ann.replace(/\s/g, "");
             unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
@@ -299,9 +307,9 @@ class Extractor {
 
                 if (statement.startsWith(this.config.controlStatements.function)) {
                     const fnName = statement.substring(this.config.controlStatements.function.length);
-                    let miniSLFunctionCode = this.readAnnotations(i+1);
+                    let miniSLFunctionCode = this.readAnnotations(i + 1);
                     if (miniSLFunctionCode.length > 1) {
-                        this.annotations.splice(i, miniSLFunctionCode.length+1);
+                        this.annotations.splice(i, miniSLFunctionCode.length + 1);
                         miniSLFunctionCode.pop(); // Remove last "end" statement
                         this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
                         i--;
@@ -309,6 +317,7 @@ class Extractor {
                 }
             }
         }
+        this.endOfAnnotation = false;
     }
 }
 

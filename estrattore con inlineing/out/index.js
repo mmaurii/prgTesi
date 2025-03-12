@@ -64,6 +64,7 @@ var Extractor = /** @class */ (function () {
         this.miniSLFunctionCode = new Map();
         this.annotatedCodeFilePath = "./annotatedCode/input0.ts";
         this.extractorConfigFilePath = './estrattoreConfig.json';
+        this.endOfAnnotation = true;
     }
     Extractor.prototype.extract = function () {
         return __awaiter(this, arguments, void 0, function (path) {
@@ -184,12 +185,19 @@ var Extractor = /** @class */ (function () {
             throw new Error("Function not found or dosn't have a body");
         }
     };
-    Extractor.prototype.writeInvoke = function (fnName) {
+    Extractor.prototype.getFunctionInvoked = function (index, fnName) {
         if (this.miniSLFunctionCode.has(fnName)) {
             return this.miniSLFunctionCode.get(fnName);
         }
         else {
-            throw new Error("Function not found");
+            //cerca l'annotazione della funzione nell'elenco delle annotazioni
+            this.readFunctionAnnotations(index + 1);
+            if (this.miniSLFunctionCode.has(fnName)) {
+                return this.miniSLFunctionCode.get(fnName);
+            }
+            else {
+                throw new Error("Function not found");
+            }
         }
     };
     Extractor.prototype.readAnnotations = function (index) {
@@ -233,7 +241,7 @@ var Extractor = /** @class */ (function () {
                 }
                 else if (statement.startsWith(this.config.controlStatements.invoke)) {
                     var fnName = statement.substring(this.config.controlStatements.invoke.length);
-                    miniSLCode.push(this.writeInvoke(fnName) + "\n");
+                    miniSLCode.push(this.getFunctionInvoked(i, fnName) + "\n");
                 }
                 else if (statement.startsWith(this.config.controlStatements.call + "main")) {
                     miniSLCode.push(this.writeMain(params));
@@ -314,8 +322,9 @@ var Extractor = /** @class */ (function () {
                 return false;
         }
     };
-    Extractor.prototype.readFunctionAnnotations = function () {
-        for (var i = 0; i < this.annotations.length; i++) {
+    Extractor.prototype.readFunctionAnnotations = function (index) {
+        if (index === void 0) { index = 0; }
+        for (var i = index; i < this.annotations.length && this.endOfAnnotation; i++) {
             var ann = this.annotations[i];
             var unspacedAnn = ann.replace(/\s/g, "");
             unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
@@ -338,6 +347,7 @@ var Extractor = /** @class */ (function () {
                 }
             }
         }
+        this.endOfAnnotation = false;
     };
     return Extractor;
 }());

@@ -32,12 +32,7 @@ namespace input0 {
         return Math.random() * 1000;
     }
 
-    // miniSL: function calcolaStipendioMensile(calc)
-    function calcolaStipendioMensile(calc: () => number): number {
-        // miniSL: call calc()
-        return calc();
-    }
-    // miniSL: end
+
 
     // miniSL: function calcolaStipendio(calcolaStipendioMensile,ruolo)
     function calcolaStipendio(calcolaStipendioMensile: (calc: () => number) => number, ruolo: string): boolean {
@@ -58,6 +53,13 @@ namespace input0 {
     }
     // miniSL: end
 
+        // miniSL: function calcolaStipendioMensile(calc)
+        function calcolaStipendioMensile(calc: () => number): number {
+            // miniSL: call calc()
+            return calc();
+        }
+        // miniSL: end
+        
     // miniSL: call main(jobs,m,r,isVipUser,username,param)
     function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
         // miniSL: for(i,m)

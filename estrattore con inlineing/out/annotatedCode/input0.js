@@ -24,12 +24,6 @@ var input0;
     function calc() {
         return Math.random() * 1000;
     }
-    // miniSL: function calcolaStipendioMensile(calc)
-    function calcolaStipendioMensile(calc) {
-        // miniSL: call calc()
-        return calc();
-    }
-    // miniSL: end
     // miniSL: function calcolaStipendio(calcolaStipendioMensile,ruolo)
     function calcolaStipendio(calcolaStipendioMensile, ruolo) {
         // miniSL: invoke calcolaStipendioMensile(calc)
@@ -47,6 +41,12 @@ var input0;
         // miniSL: end
         console.log("Stipendio calcolato: " + stp);
         return true;
+    }
+    // miniSL: end
+    // miniSL: function calcolaStipendioMensile(calc)
+    function calcolaStipendioMensile(calc) {
+        // miniSL: call calc()
+        return calc();
     }
     // miniSL: end
     // miniSL: call main(jobs,m,r,isVipUser,username,param)
