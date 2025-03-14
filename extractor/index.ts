@@ -31,7 +31,7 @@ class Extractor {
     private annotations;
     private config: Config;
     private annotatedCodeFilePath = "./annotatedCode/input0.ts";
-    private extractorConfigFilePath = './estrattoreConfig.json';
+    private extractorConfigFilePath = './extractorConfig.json';
     //flag to stop finding annotations
     private endOfAnnotation = true;
 
@@ -70,16 +70,27 @@ class Extractor {
 
     private writeFor(params: string): string {
         const variables = params.split(",");
-        const regex = '/[()]/g';
-        if (variables.length !== 2 || params.match(regex)) {
-            throw new Error("Invalid parameters for for statement");
+        const regex = /^[a-zA-Z]+[a-zA-Z0-9]*$/;
+        if (variables.length !== 2) {
+            throw new Error("Invalid number of parameter passed to for statement");
         }
-        return `for(${variables[0]} in range(0, ${variables[1]})) {\n`;
+
+        if (!variables[0].match(regex)) {
+            throw new Error("the first parameter of for statement must be an iterator variable (i.e. i)");
+        }
+
+        const ast = acorn.parse(variables[1], { ecmaVersion: 2020 });
+
+        if(this.checkArithmeticExpression(ast)){
+            return `for(${variables[0]} in range(0, ${variables[1]})) {\n`;
+        }else{
+            throw new Error("the second parameter of for statement must be an expression that result in a number");
+        }
     }
 
     private writeIf(guards: string): string {
-        const regex = "\(.*?\)"
-            ;
+        //const regex = /\(.*?\)/
+        const regex = /[a-zA-Z]+[a-zA-Z0-9]*\(.*?\)$/;
 
         /*         if(guards.match(regex)) {
                     guards = guards.slice(guards.indexOf("(") + 1, guards.lastIndexOf(")"));
@@ -87,11 +98,16 @@ class Extractor {
 
         const ast = acorn.parse(guards, { ecmaVersion: 2020 });
 
-        if (this.validateBooleanAST(ast)) {
+        if (this.checkExpression(ast, true)) {
             return `if(${guards}) {\n`;
         } else {
             if (guards.match(regex)) {
-                return `if(call ${guards}) {\n`;
+                let startIndex = guards.indexOf("(") + 1;
+                let endIndex = guards.lastIndexOf(")");
+                let param = guards.slice(startIndex, endIndex);
+                let fnName = guards.slice(0, guards.indexOf("("));
+                let ifGuard = this.writeCall(fnName, param);
+                return `if(${ifGuard}) {\n`;
             } else {
                 throw new Error("Invalid if guards");
             }
@@ -108,7 +124,11 @@ class Extractor {
 
         for (let i = 0; i < variables.length; i++) {
             if (variables[i].match(regex)) {
-                throw new Error("call can'take Function as parameter");
+                const ast = acorn.parse(variables[i], { ecmaVersion: 2020 });
+
+                if (!this.checkExpression(ast, false)) {
+                    throw new Error("call can'take Function as parameter");
+                }
             }
         }
 
@@ -136,22 +156,6 @@ class Extractor {
 
     private writeCloseStatement(): string {
         return `}\n`;
-    }
-
-    //correggi
-    private addFunction(annPosition, fnName: string, params: string): number {
-        const variables = params.split(",");
-
-        let managed = this.readAnnotations(annPosition + 1);
-
-        if (managed.length > 1) {
-            managed.pop(); // Remove last "end" statement)
-
-            this.miniSLFunctionCode.set(fnName, managed.join(""));
-            return managed.length;
-        } else {
-            throw new Error("Function not found or dosn't have a body");
-        }
     }
 
     private getFunctionInvoked(index, fnName: string): string {
@@ -264,33 +268,108 @@ class Extractor {
         return formattedCode;
     }
 
-    private validateBooleanAST(ast) {
+    /**
+     * Validate the expression AST to ensure it is a valid expression
+     * @param ast expression AST
+     * @param typeExpression boolean is a flag that means the expression is a boolean expression if it's true 
+     *                       or an arithmetic expression if it's false
+     * @returns boolean true if the expression is valid, false otherwise
+     */ 
+    private checkExpression(ast: any, typeExpression:boolean): boolean {
         if (!ast || !ast.body || ast.body.length !== 1) return false;
         const node = ast.body[0];
         if (node.type !== "ExpressionStatement") return false;
-        return this.isBooleanNode(node.expression);
+        
+        return this.validateExpression(node.expression, typeExpression);
     }
 
-    private isBooleanNode(node) {
+    private validateExpression(node: any, typeExpression:boolean): boolean {
         switch (node.type) {
             case "Literal":
-                return typeof node.value === "boolean";
-            case "LogicalExpression": // &&, ||
-            case "BinaryExpression": // >, <, >=, <=, ==, !=, ===, !==
-                return ["&&", "||", "<", ">", "<=", ">=", "==", "!=", "===", "!=="].includes(node.operator)
-                    && this.isBooleanNode(node.left)
-                    && this.isBooleanNode(node.right);
-            case "UnaryExpression": // !true
-                return node.operator === "!" && this.isBooleanNode(node.argument);
+                return typeof node.value === "boolean" || typeof node.value === "number";
             case "Identifier":
-                return true; // Assuming variables can be boolean (better to verify in runtime)
+                return true; // Assume variables can be boolean or numbers
+            case "UnaryExpression":
+                if (node.operator === "!") return this.validateExpression(node.argument, true);
+                return false;
+            case "LogicalExpression": // `&&`, `||`
+                return this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right);
+            case "BinaryExpression":
+                if (!typeExpression && ["+", "-", "*", "/"].includes(node.operator)) {
+                    // Arithmetic operation: both sides must be numbers or valid arithmetic expressions
+                    return this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right);
+                }
+                if (["<", ">", "<=", ">=", "==", "!="].includes(node.operator)) {
+                    // Comparison: both sides must be valid (either numbers, booleans, or arithmetic expressions)
+                    return ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
+                            (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
+                }
+                return false;
             case "ParenthesizedExpression":
-                return this.isBooleanNode(node.expression);
+                return this.validateExpression(node.expression, false);
             default:
                 return false;
         }
     }
 
+/*     private validateType(node): boolean {
+        if(node.left.type === "Literal" && node.right.type === "Literal") {
+            return typeof node.left.value === typeof node.right.value;
+        }
+        return true;
+    } */
+
+    private validateBooleanExpression(node: any): boolean {
+        switch (node.type) {
+            case "Literal":
+                return typeof node.value === "boolean";
+            case "LogicalExpression": // &&, ||
+                return this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right);
+            case "BinaryExpression": // >, <, >=, <=, ==, !=
+                return ["<", ">", "<=", ">=", "==", "!="].includes(node.operator) &&
+                        ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
+                        (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
+            case "UnaryExpression": // !true
+                return node.operator === "!" && this.validateBooleanExpression(node.argument);
+            case "Identifier":
+                return true; // Assuming variables can be boolean
+            case "ParenthesizedExpression":
+                return this.validateBooleanExpression(node.expression);
+            default:
+                return false;
+        }
+    }
+    
+    private validateArithmeticExpression(node: any): boolean {
+        switch (node.type) {
+            case "Literal":
+                return typeof node.value === "number";
+            case "BinaryExpression": // +, -, *, /
+                return ["+", "-", "*", "/"].includes(node.operator) &&
+                       this.validateArithmeticExpression(node.left) &&
+                       this.validateArithmeticExpression(node.right);
+            case "Identifier":
+                return true; // Assuming variables can be numbers
+            case "ParenthesizedExpression":
+                return this.validateArithmeticExpression(node.expression);
+            default:
+                return false;
+        }
+    }
+    
+        /**
+     * Validate the expression AST to ensure it is a valid arithmetic expression
+     * @param ast expression AST
+     * @returns boolean true if the expression is valid, false otherwise
+     */ 
+    private checkArithmeticExpression(ast: any): boolean {
+        if (!ast || !ast.body || ast.body.length !== 1) return false;
+        const node = ast.body[0];
+        if (node.type !== "ExpressionStatement") return false;
+        
+        return this.validateArithmeticExpression(node.expression);
+    }
+    
     private readFunctionAnnotations(index = 0): void {
         for (let i = index; i < this.annotations.length && this.endOfAnnotation; i++) {
             const ann = this.annotations[i];

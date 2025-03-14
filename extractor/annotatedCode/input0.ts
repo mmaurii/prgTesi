@@ -75,9 +75,9 @@ namespace input0 {
         }
         // miniSL: end
 
-        // miniSL: if(isVipUser)
+        // miniSL: if(5 == 5)
         if (isVipUser) {
-            // miniSL: if(IsPremiumUser(username))
+            // miniSL: if(IsPremiumUser((username && param1)||def1))
             if (IsPremiumUser(username)) {
                 // miniSL: call PremiumService(param)
                 PremiumService(param);
@@ -115,4 +115,34 @@ namespace input0 {
     const username = "user";
 
     main(jobs, m, r, isPremiumUser, param, username);
+
+    // TEST FOR IF GUARD EXPREXION
+    //- miniSL: if(true && false)
+    //- miniSL: if(5 > 3)
+    //- miniSL: if(10 + 5)
+    //- miniSL: if(x * y - 2)
+    //- miniSL: if((a > b) && (c < d))
+    //- miniSL: if(x > 10 + 5)
+    //- miniSL: if(3+x > 10 + 5)
+    //- miniSL: if(3+x > 10 + 5 < 3 +2)
+    //- miniSL: if(3+x > 10 + 5 && 3+x > 10 + 5 < 3 +2)
+    //- miniSL: if(5 * (x || y))
+    //- miniSL: if(true + 1)
+    //- miniSL: if(!((a + b) > (c * 2)) || (d - 3 < e / 2))
+    //- miniSL: if(!(((a + b) == (b+c)) + (c * 2)) || (d - 3 < e / 2))
+    //- miniSL: if(!((a + b == b+c) < (c * 2)) || (d - 3 < e / 2))
+    //- miniSL: if(invalid syntax)
+
+    // TEST FOR ITERATOR GUARD EXPREXION
+    //- miniSL: for(i,3)
+    //- miniSL: for(i,3*2)
+    //- miniSL: for(i,3+2*1) 
+    //- miniSL: for(i,(3+2)*1)
+    //- miniSL: for(i1,3+2*1)  
+    //- miniSL: for(ik,3+2*1)  
+    //- miniSL: for(,3+2*1)  
+    //- miniSL: for(1,3+2+1)  
+    //- miniSL: for(iKj(),3+2+1)  
+    //- miniSL: for(12JKk,3+2-1)
+    //- miniSL: for(KKK,3+2/1)  
 }

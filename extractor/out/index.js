@@ -63,7 +63,8 @@ var Extractor = /** @class */ (function () {
         this.miniSLServices = "";
         this.miniSLFunctionCode = new Map();
         this.annotatedCodeFilePath = "./annotatedCode/input0.ts";
-        this.extractorConfigFilePath = './estrattoreConfig.json';
+        this.extractorConfigFilePath = './extractorConfig.json';
+        //flag to stop finding annotations
         this.endOfAnnotation = true;
     }
     Extractor.prototype.extract = function () {
@@ -114,24 +115,39 @@ var Extractor = /** @class */ (function () {
     };
     Extractor.prototype.writeFor = function (params) {
         var variables = params.split(",");
-        var regex = '/[()]/g';
-        if (variables.length !== 2 || params.match(regex)) {
-            throw new Error("Invalid parameters for for statement");
+        var regex = /^[a-zA-Z]+[a-zA-Z0-9]*$/;
+        if (variables.length !== 2) {
+            throw new Error("Invalid number of parameter passed to for statement");
         }
-        return "for(".concat(variables[0], " in range(0, ").concat(variables[1], ")) {\n");
+        if (!variables[0].match(regex)) {
+            throw new Error("the first parameter of for statement must be an iterator variable (i.e. i)");
+        }
+        var ast = acorn.parse(variables[1], { ecmaVersion: 2020 });
+        if (this.checkArithmeticExpression(ast)) {
+            return "for(".concat(variables[0], " in range(0, ").concat(variables[1], ")) {\n");
+        }
+        else {
+            throw new Error("the second parameter of for statement must be an expression that result in a number");
+        }
     };
     Extractor.prototype.writeIf = function (guards) {
-        var regex = "\(.*?\)";
+        //const regex = /\(.*?\)/
+        var regex = /[a-zA-Z]+[a-zA-Z0-9]*\(.*?\)$/;
         /*         if(guards.match(regex)) {
                     guards = guards.slice(guards.indexOf("(") + 1, guards.lastIndexOf(")"));
                 } */
         var ast = acorn.parse(guards, { ecmaVersion: 2020 });
-        if (this.validateBooleanAST(ast)) {
+        if (this.checkExpression(ast, true)) {
             return "if(".concat(guards, ") {\n");
         }
         else {
             if (guards.match(regex)) {
-                return "if(call ".concat(guards, ") {\n");
+                var startIndex = guards.indexOf("(") + 1;
+                var endIndex = guards.lastIndexOf(")");
+                var param = guards.slice(startIndex, endIndex);
+                var fnName = guards.slice(0, guards.indexOf("("));
+                var ifGuard = this.writeCall(fnName, param);
+                return "if(".concat(ifGuard, ") {\n");
             }
             else {
                 throw new Error("Invalid if guards");
@@ -146,7 +162,10 @@ var Extractor = /** @class */ (function () {
         var regex = '[()]';
         for (var i = 0; i < variables.length; i++) {
             if (variables[i].match(regex)) {
-                throw new Error("call can'take Function as parameter");
+                var ast = acorn.parse(variables[i], { ecmaVersion: 2020 });
+                if (!this.checkExpression(ast, false)) {
+                    throw new Error("call can'take Function as parameter");
+                }
             }
         }
         if (!this.miniSLServices.includes("".concat(fnName))) {
@@ -171,19 +190,6 @@ var Extractor = /** @class */ (function () {
     };
     Extractor.prototype.writeCloseStatement = function () {
         return "}\n";
-    };
-    //correggi
-    Extractor.prototype.addFunction = function (annPosition, fnName, params) {
-        var variables = params.split(",");
-        var managed = this.readAnnotations(annPosition + 1);
-        if (managed.length > 1) {
-            managed.pop(); // Remove last "end" statement)
-            this.miniSLFunctionCode.set(fnName, managed.join(""));
-            return managed.length;
-        }
-        else {
-            throw new Error("Function not found or dosn't have a body");
-        }
     };
     Extractor.prototype.getFunctionInvoked = function (index, fnName) {
         if (this.miniSLFunctionCode.has(fnName)) {
@@ -295,32 +301,104 @@ var Extractor = /** @class */ (function () {
         }
         return formattedCode;
     };
-    Extractor.prototype.validateBooleanAST = function (ast) {
+    /**
+     * Validate the expression AST to ensure it is a valid expression
+     * @param ast expression AST
+     * @param typeExpression boolean is a flag that means the expression is a boolean expression if it's true
+     *                       or an arithmetic expression if it's false
+     * @returns boolean true if the expression is valid, false otherwise
+     */
+    Extractor.prototype.checkExpression = function (ast, typeExpression) {
         if (!ast || !ast.body || ast.body.length !== 1)
             return false;
         var node = ast.body[0];
         if (node.type !== "ExpressionStatement")
             return false;
-        return this.isBooleanNode(node.expression);
+        return this.validateExpression(node.expression, typeExpression);
     };
-    Extractor.prototype.isBooleanNode = function (node) {
+    Extractor.prototype.validateExpression = function (node, typeExpression) {
+        switch (node.type) {
+            case "Literal":
+                return typeof node.value === "boolean" || typeof node.value === "number";
+            case "Identifier":
+                return true; // Assume variables can be boolean or numbers
+            case "UnaryExpression":
+                if (node.operator === "!")
+                    return this.validateExpression(node.argument, true);
+                return false;
+            case "LogicalExpression": // `&&`, `||`
+                return this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right);
+            case "BinaryExpression":
+                if (!typeExpression && ["+", "-", "*", "/"].includes(node.operator)) {
+                    // Arithmetic operation: both sides must be numbers or valid arithmetic expressions
+                    return this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right);
+                }
+                if (["<", ">", "<=", ">=", "==", "!="].includes(node.operator)) {
+                    // Comparison: both sides must be valid (either numbers, booleans, or arithmetic expressions)
+                    return ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
+                        (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
+                }
+                return false;
+            case "ParenthesizedExpression":
+                return this.validateExpression(node.expression, false);
+            default:
+                return false;
+        }
+    };
+    /*     private validateType(node): boolean {
+            if(node.left.type === "Literal" && node.right.type === "Literal") {
+                return typeof node.left.value === typeof node.right.value;
+            }
+            return true;
+        } */
+    Extractor.prototype.validateBooleanExpression = function (node) {
         switch (node.type) {
             case "Literal":
                 return typeof node.value === "boolean";
             case "LogicalExpression": // &&, ||
-            case "BinaryExpression": // >, <, >=, <=, ==, !=, ===, !==
-                return ["&&", "||", "<", ">", "<=", ">=", "==", "!=", "===", "!=="].includes(node.operator)
-                    && this.isBooleanNode(node.left)
-                    && this.isBooleanNode(node.right);
+                return this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right);
+            case "BinaryExpression": // >, <, >=, <=, ==, !=
+                return ["<", ">", "<=", ">=", "==", "!="].includes(node.operator) &&
+                    ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
+                        (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
             case "UnaryExpression": // !true
-                return node.operator === "!" && this.isBooleanNode(node.argument);
+                return node.operator === "!" && this.validateBooleanExpression(node.argument);
             case "Identifier":
-                return true; // Assuming variables can be boolean (better to verify in runtime)
+                return true; // Assuming variables can be boolean
             case "ParenthesizedExpression":
-                return this.isBooleanNode(node.expression);
+                return this.validateBooleanExpression(node.expression);
             default:
                 return false;
         }
+    };
+    Extractor.prototype.validateArithmeticExpression = function (node) {
+        switch (node.type) {
+            case "Literal":
+                return typeof node.value === "number";
+            case "BinaryExpression": // +, -, *, /
+                return ["+", "-", "*", "/"].includes(node.operator) &&
+                    this.validateArithmeticExpression(node.left) &&
+                    this.validateArithmeticExpression(node.right);
+            case "Identifier":
+                return true; // Assuming variables can be numbers
+            case "ParenthesizedExpression":
+                return this.validateArithmeticExpression(node.expression);
+            default:
+                return false;
+        }
+    };
+    /**
+ * Validate the expression AST to ensure it is a valid arithmetic expression
+ * @param ast expression AST
+ * @returns boolean true if the expression is valid, false otherwise
+ */
+    Extractor.prototype.checkArithmeticExpression = function (ast) {
+        if (!ast || !ast.body || ast.body.length !== 1)
+            return false;
+        var node = ast.body[0];
+        if (node.type !== "ExpressionStatement")
+            return false;
+        return this.validateArithmeticExpression(node.expression);
     };
     Extractor.prototype.readFunctionAnnotations = function (index) {
         if (index === void 0) { index = 0; }
