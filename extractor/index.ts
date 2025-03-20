@@ -2,9 +2,13 @@ import * as fs from 'fs';
 import * as acorn from "acorn";
 
 interface Config {
+    //character that identifies the start of the inline comment
     startAnnotation: string;
+    //character that identifies the end of the inline comment, can be empty
     endAnnotation: string;
+    //miniSL annotation identifier
     miniSLID: string;
+    //miniSL statements
     controlStatements: {
         "for": string;
         "call": string;
@@ -21,7 +25,7 @@ async function readFile(path: string): Promise<string> {
         const data = await fs.promises.readFile(path, 'utf-8');
         return data;
     } catch (error) {
-        console.error('Errore nella lettura del file:', error);
+        console.error('Error while reading the file:', error);
     }
 }
 
@@ -30,9 +34,9 @@ class Extractor {
     private miniSLFunctionCode = new Map();
     private annotations;
     private config: Config;
-    private annotatedCodeFilePath = "./annotatedCode/input0.ts";
+    private annotatedCodeFilePath = "./annotatedCode/input2.ts";
     private extractorConfigFilePath = './extractorConfig.json';
-    //flag to stop finding annotations
+    //flag to stop finding function annotations
     private endOfAnnotation = true;
 
     public async extract(path: string = this.annotatedCodeFilePath): Promise<void> {
@@ -42,24 +46,25 @@ class Extractor {
             //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
             this.config = JSON.parse(await readFile(this.extractorConfigFilePath));
 
-            const lines = (await readFile(this.annotatedCodeFilePath)).split("\n");
-            // Estraggo le annotazioni
+            const lines = (await readFile(path)).split("\n");
+            // filter the lines that contain the annotations
             this.annotations = lines.filter(line => this.findAnnotation(line, this.config.miniSLID, this.config.startAnnotation, this.config.endAnnotation));
 
             if (this.annotations.length === 0) {
-                console.error("Nessuna annotazione trovata");
+                console.error("Annotations not found in the file");
                 return;
             }
 
-            //leggo le annotazioni delle funzioni e genero il codice miniSL
+            //Reading the function annotations and saveing the relative miniSL code in a map
             this.readFunctionAnnotations();
 
-            //leggo le annotazioni del main e genero il codice miniSL
+            //Reading the main annotation and generating miniSL code
             miniSLCode += this.readAnnotations().join("");
         } catch (error) {
-            console.error("Errore durante la lettura del file: ", error);
+            console.error("Error while reading the file: ", error);
         }
 
+        //adding the miniSL services to the miniSL code
         miniSLCode = this.miniSLServices + miniSLCode;
 
         //indenting code
@@ -68,9 +73,15 @@ class Extractor {
         console.log(indentedCode);
     }
 
+    /**
+     * This function takes a for guard and generates the miniSL code
+     * @param params for guard, the params are the iterator variable and the number of iteration
+     * @returns miniSL code for the for statement in a string format
+     */
     private writeFor(params: string): string {
         const variables = params.split(",");
         const regex = /^[a-zA-Z]+[a-zA-Z0-9]*$/;
+
         if (variables.length !== 2) {
             throw new Error("Invalid number of parameter passed to for statement");
         }
@@ -81,6 +92,7 @@ class Extractor {
 
         const ast = acorn.parse(variables[1], { ecmaVersion: 2020 });
 
+        //check if the second parameter is an arithmetic expression
         if(this.checkArithmeticExpression(ast)){
             return `for(${variables[0]} in range(0, ${variables[1]})) {\n`;
         }else{
@@ -88,19 +100,21 @@ class Extractor {
         }
     }
 
+    /**
+     * This function takes an if guard and generates the miniSL code
+     * @param guards if guard, the guards are the conditions that must be satisfied to execute the code inside the if statement
+     * @returns miniSL code for the if statement in a string format
+     */
     private writeIf(guards: string): string {
-        //const regex = /\(.*?\)/
         const regex = /[a-zA-Z]+[a-zA-Z0-9]*\(.*?\)$/;
-
-        /*         if(guards.match(regex)) {
-                    guards = guards.slice(guards.indexOf("(") + 1, guards.lastIndexOf(")"));
-                } */
 
         const ast = acorn.parse(guards, { ecmaVersion: 2020 });
 
+        //check if the guard is a valid expression
         if (this.checkExpression(ast, true)) {
             return `if(${guards}) {\n`;
         } else {
+            //check if the guard is a call to a an extrernal service
             if (guards.match(regex)) {
                 let startIndex = guards.indexOf("(") + 1;
                 let endIndex = guards.lastIndexOf(")");
@@ -114,55 +128,86 @@ class Extractor {
         }
     }
 
+    /**
+     * This function generates the miniSL code for the else statement 
+     * @returns miniSL code for the else statement in a string format
+     */
     private writeElse(): string {
         return `} else {\n`;
     }
 
-    private writeCall(fnName: string, params: string): string {
+    /**
+     * This function takes a service name and its input parameters and generates the miniSL code associated
+     * @param serviceName the name of the service to call
+     * @param params input parameters of the service
+     * @returns miniSL code for the call statement in a string format
+     */
+    private writeCall(serviceName: string, params: string): string {
         const variables = params.split(",");
-        const regex = '[()]';
+        const regex = /\(.*?\)$/;
 
         for (let i = 0; i < variables.length; i++) {
+            //verify if the parameter is an expression
             if (variables[i].match(regex)) {
                 const ast = acorn.parse(variables[i], { ecmaVersion: 2020 });
 
+                //check if the parameter is a valid expression: arithmetic or boolean
                 if (!this.checkExpression(ast, false)) {
-                    throw new Error("call can'take Function as parameter");
+                    throw new Error("Error: call can'take Function as parameter or invalid expression");
                 }
             }
         }
 
-        if (!this.miniSLServices.includes(`${fnName}`)) {
-            this.miniSLServices += `service ${fnName} : (void) -> void;\n`;
+        //check if the service is already defined
+        if (!this.miniSLServices.includes(`${serviceName}`)) {
+            this.miniSLServices += `service ${serviceName} : (void) -> void;\n`;
         }
 
-        return `call ${fnName}(${params})`;
+        return `call ${serviceName}(${params})`;
     }
 
+
+    /**
+     * This function takes the input parameters of the main function and generates the miniSL code associated
+     * @param params input parameters of the miniSL main function
+     * @returns miniSL code for the main function in a string format
+     */
     private writeMain(params: string): string {
+        if(params.charAt(params.length- 1) === "," || params.charAt(0) === ","){
+            throw new Error("Invalid syntax main can't have empty parameters");
+        }
         const variables = params.split(",");
-        const regex = '/[()]/g';
+        const regex = /^[a-zA-Z]*[a-zA-Z0-9]*$/;
         const variablesMapped = variables.map(i => {
             if (i.match(regex)) {
-                i = i.substring(0, i.length - 2);
-                if (!this.miniSLServices.includes(`${i}`)) {
-                    this.miniSLServices += `service ${i} : (void) -> void;\n`;
-                }
+                return i;
+            }else{
+                throw new Error("Invalid parameter passed to main function");
             }
-            return i;
         });
         return `(${variablesMapped.join(", ")}) => {\n`;
     }
 
+    /**
+     * This function generates the miniSL code for the end statement
+     * @returns miniSL code for the end statement in a string format
+     */
     private writeCloseStatement(): string {
         return `}\n`;
     }
 
+    /**
+     * This function takes a function name and its input parameters and generates the miniSL code associated
+     * @param index of the just readed annotation from the annotations array
+     * @param fnName the name of the function invoked
+     * @returns miniSL associated to the function invoked in a string format
+     */
     private getFunctionInvoked(index, fnName: string): string {
+        //finding the function code in the map
         if (this.miniSLFunctionCode.has(fnName)) {
             return this.miniSLFunctionCode.get(fnName);
         } else {
-            //cerca l'annotazione della funzione nell'elenco delle annotazioni
+            //finding the function code in the annotations array
             this.readFunctionAnnotations(index + 1);
             if (this.miniSLFunctionCode.has(fnName)) {
                 return this.miniSLFunctionCode.get(fnName);
@@ -172,13 +217,21 @@ class Extractor {
         }
     }
 
+    /**
+     * This function reads the annotations and generates the miniSL code associated to the outermost block.
+     * @param index of the just readed annotation from the annotations array
+     * @returns miniSL code in a string format
+     */
     private readAnnotations(index = 0): String[] {
+        //array containing the miniSL code generated from the annotations
         let miniSLCode: String[] = new Array();
+        //counters for the opened and closed statements '{ and }'
         let openedStatements = 0;
         let closedStatements = 0;
 
 
         for (let i = index; i < this.annotations.length && (openedStatements >= closedStatements); i++) {
+            //selecting the unspaced annotation controlStatements
             const ann = this.annotations[i];
             let unspacedAnn = ann.replace(/\s/g, "");
             unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
@@ -197,10 +250,11 @@ class Extractor {
                     return;
                 }
             } else {
+                //selecting the controlStatements and their guard parameters
                 const statement = unspacedAnn.substring(startIndex, endIndex);
                 startIndex = endIndex + 1;
                 endIndex = unspacedAnn.lastIndexOf(")");
-                const params = unspacedAnn.substring(startIndex, endIndex);
+                const params = unspacedAnn.substring(startIndex, endIndex).trim();
 
                 if (statement === this.config.controlStatements.for) {
                     miniSLCode.push(this.writeFor(params));
@@ -211,7 +265,7 @@ class Extractor {
                     openedStatements++;
                 } else if (statement.startsWith(this.config.controlStatements.invoke)) {
                     const fnName = statement.substring(this.config.controlStatements.invoke.length);
-                    miniSLCode.push(this.getFunctionInvoked(i, fnName) + "\n");
+                    miniSLCode.push(this.getFunctionInvoked(i, fnName));
                 } else if (statement.startsWith(this.config.controlStatements.call + "main")) {
                     miniSLCode.push(this.writeMain(params));
                     openedStatements++;
@@ -228,6 +282,14 @@ class Extractor {
         return miniSLCode;
     }
 
+    /**
+     * This function checks if the annotation is present in the line
+     * @param line to analyze
+     * @param miniSLID annotation comment identifier
+     * @param startAnnotation character that identifies the start of the inline comment
+     * @param endAnnotation character that identifies the end of the inline comment, if it's empty the function will check only the start of the comment
+     * @returns 
+     */
     private findAnnotation(line: string, miniSLID: string, startAnnotation: string, endAnnotation: string = ""): boolean {
         if (!miniSLID || !startAnnotation) {
             throw new Error("Parameters 'miniSLID' 'startAnnotation' cannot be empty or null");
@@ -242,34 +304,39 @@ class Extractor {
         }
     }
 
+    /**
+     * Indent the MiniSL code
+     * @param code MiniSL code to indent
+     * @returns indented MiniSL code
+     */
     public indentMiniSLCode(code: string): string {
-        const lines = code.split("\n").map((line) => line.trim()); // Divide in righe e rimuove spazi extra
+        const lines = code.split("\n").map((line) => line.trim()); // split to line and trim it
         let indentLevel = 0;
-        const indentSize = 2; // Spazi per indentazione
-        let formattedCode = "";
+        const indentSize = 2;
+        let formattedCode = new Array<string>();
 
         for (let line of lines) {
-            if (line === "") continue; // Salta righe vuote
+            // if (line === "") continue; Salta righe vuote
 
-            // Riduci indentazione se la riga chiude una parentesi graffa
+            // Reduce indentation on finding a closing brace
             if (line.startsWith("}")) {
                 indentLevel = Math.max(0, indentLevel - 1);
             }
 
-            // Aggiungi indentazione
-            formattedCode += " ".repeat(indentLevel * indentSize) + line + "\n";
+            // add the line with the current indentation
+            formattedCode.push(" ".repeat(indentLevel * indentSize) + line + "\n");
 
-            // Aumenta indentazione dopo una parentesi aperta
+            // improve indentation on finding an opening brace
             if (line.endsWith("{")) {
                 indentLevel++;
             }
         }
 
-        return formattedCode;
+        return formattedCode.join("");
     }
 
     /**
-     * Validate the expression AST to ensure it is a valid expression
+     * This function validate the expression AST to ensure it is a valid expression
      * @param ast expression AST
      * @param typeExpression boolean is a flag that means the expression is a boolean expression if it's true 
      *                       or an arithmetic expression if it's false
@@ -283,6 +350,13 @@ class Extractor {
         return this.validateExpression(node.expression, typeExpression);
     }
 
+    /**
+     * This function recursively validates the expression AST to ensure it is a valid expression
+     * @param node AST node
+     * @param typeExpression boolean is a flag that means the expression is a boolean expression if it's true 
+     *                       or an arithmetic expression if it's false 
+     * @returns true if the expression is boolean, false otherwise
+     */
     private validateExpression(node: any, typeExpression:boolean): boolean {
         switch (node.type) {
             case "Literal":
@@ -312,13 +386,11 @@ class Extractor {
         }
     }
 
-/*     private validateType(node): boolean {
-        if(node.left.type === "Literal" && node.right.type === "Literal") {
-            return typeof node.left.value === typeof node.right.value;
-        }
-        return true;
-    } */
-
+    /**
+     * This function recursively validates the expression AST to ensure it is a valid boolean expression
+     * @param node AST node
+     * @returns true if the expression is boolean, false otherwise
+     */
     private validateBooleanExpression(node: any): boolean {
         switch (node.type) {
             case "Literal":
@@ -340,6 +412,11 @@ class Extractor {
         }
     }
     
+    /**
+     * This function recursively validates the expression AST to ensure it is a valid arithmetic expression
+     * @param node AST node
+     * @returns true if the expression is a valid arithmetic expression, false otherwise
+     */
     private validateArithmeticExpression(node: any): boolean {
         switch (node.type) {
             case "Literal":
@@ -357,7 +434,7 @@ class Extractor {
         }
     }
     
-        /**
+    /**
      * Validate the expression AST to ensure it is a valid arithmetic expression
      * @param ast expression AST
      * @returns boolean true if the expression is valid, false otherwise
@@ -370,8 +447,13 @@ class Extractor {
         return this.validateArithmeticExpression(node.expression);
     }
     
+    /**
+     * This function reads the function annotations and saves the relative miniSL code in a map
+     * @param index of the next readed annotation from the annotations array
+     */
     private readFunctionAnnotations(index = 0): void {
         for (let i = index; i < this.annotations.length && this.endOfAnnotation; i++) {
+            //selecting the unspaced annotation controlStatements
             const ann = this.annotations[i];
             let unspacedAnn = ann.replace(/\s/g, "");
             unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
@@ -379,19 +461,25 @@ class Extractor {
             let endIndex = unspacedAnn.indexOf("(", startIndex);
 
             if (endIndex !== -1) {
+
                 const statement = unspacedAnn.substring(startIndex, endIndex);
                 startIndex = endIndex + 1;
-                endIndex = unspacedAnn.lastIndexOf(")");
+      /*           endIndex = unspacedAnn.lastIndexOf(")");
                 const params = unspacedAnn.substring(startIndex, endIndex);
-
+ */
                 if (statement.startsWith(this.config.controlStatements.function)) {
                     const fnName = statement.substring(this.config.controlStatements.function.length);
+
+                    //Read the function code and translate it in miniSL code
                     let miniSLFunctionCode = this.readAnnotations(i + 1);
+
                     if (miniSLFunctionCode.length > 1) {
                         this.annotations.splice(i, miniSLFunctionCode.length + 1);
                         miniSLFunctionCode.pop(); // Remove last "end" statement
-                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
                         i--;
+
+                        // Save the function code in the map
+                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
                     }
                 }
             }
