@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as acorn from "acorn";
+import { exit } from 'process';
 
 interface Config {
     //character that identifies the start of the inline comment
@@ -25,7 +26,7 @@ async function readFile(path: string): Promise<string> {
         const data = await fs.promises.readFile(path, 'utf-8');
         return data;
     } catch (error) {
-        console.error('Error while reading the file:', error);
+        console.error('Error while reading the file:\n', error);
     }
 }
 
@@ -34,7 +35,7 @@ class Extractor {
     private miniSLFunctionCode = new Map();
     private annotations;
     private config: Config;
-    private annotatedCodeFilePath = "./annotatedCode/input0.py";
+    private annotatedCodeFilePath = "./annotatedCode/input.ts";
     private extractorConfigFilePath = './extractorConfig.json';
     //flag to stop finding function annotations
     private endOfAnnotation = true;
@@ -42,25 +43,21 @@ class Extractor {
     public async extract(path: string = this.annotatedCodeFilePath): Promise<void> {
         let miniSLCode = "\n";
 
-        try {
-            //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
-            this.config = JSON.parse(await readFile(this.extractorConfigFilePath));
+        //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
+        this.config = JSON.parse(await readFile(this.extractorConfigFilePath));
 
-            const lines = (await readFile(path)).split("\n");
-            // filter the lines that contain the annotations
-            this.annotations = lines.filter(line => this.findAnnotation(line, this.config.miniSLID, this.config.startAnnotation, this.config.endAnnotation));
+        const lines = (await readFile(path)).split("\n");
+        // filter the lines that contain the annotations
+        this.annotations = lines.filter(line => this.findAnnotation(line, this.config.miniSLID, this.config.startAnnotation, this.config.endAnnotation));
 
-            if (this.annotations.length === 0) {
-                console.error("Annotations not found in the file");
-                return;
-            }
-        } catch (error) {
-            console.error("Error while reading the file: ", error);
+        if (this.annotations.length === 0) {
+            console.error("Annotations not found in the file");
+            return;
         }
 
         try {
             //Reading the function annotations and saveing the relative miniSL code in a map
-            this.readFunctionAnnotations();
+            this.findFunctionAnnotations();
 
             //Reading the main annotation and generating miniSL code
             miniSLCode += this.readAnnotations().join("");
@@ -74,7 +71,7 @@ class Extractor {
 
             console.log(indentedCode);
         } catch (error) {
-            console.error("Error while extracting the code: ", error);
+            console.error("Error while extracting the code: \n", error);
         }
     }
 
@@ -92,7 +89,7 @@ class Extractor {
         }
 
         if (!variables[0].match(regex)) {
-            throw new Error("the first parameter of for statement must be an iterator variable (i.e. i)");
+            throw new Error("for's first parameter must be an iterator variable (i.e. i)");
         }
 
         const ast = acorn.parse(variables[1], { ecmaVersion: 2020 });
@@ -112,8 +109,13 @@ class Extractor {
      */
     private writeIf(guards: string): string {
         const regex = /[a-zA-Z]+[a-zA-Z0-9]*\(.*?\)$/;
+        let ast;
 
-        const ast = acorn.parse(guards, { ecmaVersion: 2020 });
+        try {
+            ast = acorn.parse(guards, { ecmaVersion: 2020 });
+        } catch (error) {
+            throw new Error("Invalid if guards");
+        }
 
         //check if the guard is a valid expression
         if (this.checkExpression(ast, true)) {
@@ -158,7 +160,7 @@ class Extractor {
 
                 //check if the parameter is a valid expression: arithmetic or boolean
                 if (!this.checkExpression(ast, false)) {
-                    throw new Error("Error: call can'take Function as parameter or invalid expression");
+                    throw new Error("Error: call can'take Function as parameter or invalid expression ");
                 }
             }
         }
@@ -213,7 +215,7 @@ class Extractor {
             return this.miniSLFunctionCode.get(fnName);
         } else {
             //finding the function code in the annotations array
-            this.readFunctionAnnotations(index + 1);
+            this.findFunctionAnnotations(index + 1);
             if (this.miniSLFunctionCode.has(fnName)) {
                 return this.miniSLFunctionCode.get(fnName);
             } else {
@@ -238,12 +240,11 @@ class Extractor {
         for (let i = index; i < this.annotations.length && (openedStatements >= closedStatements); i++) {
             //selecting the unspaced annotation controlStatements
             const annotatedLine = this.annotations[i];
-            //let unspacedAnn = ann.replace(/\s/g, "");
-            //migliorabile
             const miniSLComment = this.config.startAnnotation + " " + this.config.miniSLID + ":";
-            //usable on filter
+
+            //selecting the annotation
             let startIndex = annotatedLine.indexOf(miniSLComment) + miniSLComment.length;
-            let endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex): annotatedLine.length;
+            let endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex) : annotatedLine.length;
             let ann = annotatedLine.substring(startIndex, endIndex).trim();
 
             //start to identify the controlStatements type
@@ -257,8 +258,7 @@ class Extractor {
                 } else if (ann === this.config.controlStatements.else) {
                     miniSLCode.push(this.writeElse());
                 } else {
-                    console.error(`Unknown statement: ${ann}`);
-                    return;
+                    throw new Error(`Error: Unknown statement: ${ann}`);
                 }
             } else {
                 //selecting the parameters of the controlStatements 
@@ -268,38 +268,33 @@ class Extractor {
                 ann = ann.substring(0, startIndex - 1);
                 ann = ann.replace(/\s/g, "");
 
-                if (ann === this.config.controlStatements.for) {
-                    miniSLCode.push(this.writeFor(params));
-                    openedStatements++;
-                } else if (ann === this.config.controlStatements.if) {
-                    const guard = annotatedLine.substring(annotatedLine.indexOf("(") + 1, annotatedLine.lastIndexOf(")"));
-                    miniSLCode.push(this.writeIf(guard));
-                    openedStatements++;
-                } else if (ann.startsWith(this.config.controlStatements.invoke)) {
-                    const fnName = ann.substring(this.config.controlStatements.invoke.length);
-                    miniSLCode.push(this.getFunctionInvoked(i, fnName));
-                }else if (ann.startsWith(this.config.controlStatements.function)) {
-                    const fnName = ann.substring(this.config.controlStatements.function.length);
-
-                    //Read the function code and translate it in miniSL code
-                    let miniSLFunctionCode = this.readAnnotations(i + 1);
-
-                    if (miniSLFunctionCode.length > 1) {
-                        this.annotations.splice(i, miniSLFunctionCode.length + 1);
-                        miniSLFunctionCode.pop(); // Remove last "end" statement
+                try {
+                    //check if the annotation is a control statement
+                    if (ann === this.config.controlStatements.for) {
+                        miniSLCode.push(this.writeFor(params));
+                        openedStatements++;
+                    } else if (ann === this.config.controlStatements.if) {
+                        const guard = annotatedLine.substring(annotatedLine.indexOf("(") + 1, annotatedLine.lastIndexOf(")"));
+                        miniSLCode.push(this.writeIf(guard));
+                        openedStatements++;
+                    } else if (ann.startsWith(this.config.controlStatements.function)) {
+                        this.readFunctionAnnotations(i, ann);
                         i--;
-
-                        // Save the function code in the map
-                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
+                    } else if (ann.startsWith(this.config.controlStatements.call)) {
+                        const fnName = ann.substring(this.config.controlStatements.call.length);
+                        miniSLCode.push(this.writeCall(fnName, params) + "\n");
+                    } else if (ann.startsWith(this.config.controlStatements.invoke + "main")) {
+                        miniSLCode.push(this.writeMain(params));
+                        openedStatements++;
+                    } else if (ann.startsWith(this.config.controlStatements.invoke)) {
+                        const fnName = ann.substring(this.config.controlStatements.invoke.length);
+                        miniSLCode.push(this.getFunctionInvoked(i, fnName));
+                    } else {
+                        throw new Error(`Unknown statement: ${ann}`);
                     }
-                } else if (ann.startsWith(this.config.controlStatements.call + "main")) {
-                    miniSLCode.push(this.writeMain(params));
-                    openedStatements++;
-                } else if (ann.startsWith(this.config.controlStatements.call)) {
-                    const fnName = ann.substring(this.config.controlStatements.call.length);
-                    miniSLCode.push(this.writeCall(fnName, params) + "\n");
-                } else {
-                    throw new Error(`Unknown statement: ${ann}`);
+                } catch (error) {
+                    console.error(`Error while processing the annotation: ${ann}\nin line:${annotatedLine}\n`, error);
+                    exit(0);
                 }
             }
         }
@@ -476,7 +471,7 @@ class Extractor {
      * This function reads the function annotations and saves the relative miniSL code in a map
      * @param index of the next readed annotation from the annotations array
      */
-    private readFunctionAnnotations(index = 0): void {
+    private findFunctionAnnotations(index = 0): void {
         for (let i = index; i < this.annotations.length && this.endOfAnnotation; i++) {
             //selecting the unspaced annotation controlStatements
             const ann = this.annotations[i];
@@ -487,29 +482,36 @@ class Extractor {
 
             if (endIndex !== -1) {
 
-                const statement = unspacedAnn.substring(startIndex, endIndex);
+                const annotation = unspacedAnn.substring(startIndex, endIndex);
                 startIndex = endIndex + 1;
-                /*           endIndex = unspacedAnn.lastIndexOf(")");
-                          const params = unspacedAnn.substring(startIndex, endIndex);
-           */
-                if (statement.startsWith(this.config.controlStatements.function)) {
-                    const fnName = statement.substring(this.config.controlStatements.function.length);
 
-                    //Read the function code and translate it in miniSL code
-                    let miniSLFunctionCode = this.readAnnotations(i + 1);
-
-                    if (miniSLFunctionCode.length > 1) {
-                        this.annotations.splice(i, miniSLFunctionCode.length + 1);
-                        miniSLFunctionCode.pop(); // Remove last "end" statement
-                        i--;
-
-                        // Save the function code in the map
-                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
-                    }
+                if (annotation.startsWith(this.config.controlStatements.function)) {
+                    this.readFunctionAnnotations(i, annotation);
+                    i--;
                 }
             }
         }
         this.endOfAnnotation = false;
+    }
+
+    /**
+     * This function reads the function annotations and saves the relative miniSL code in a map
+     * @param i index of the just readed annotation from the annotations array
+     * @param annotation annotation readed without parameters
+     */
+    private readFunctionAnnotations(i: number, annotation: string): void {
+        const fnName = annotation.substring(this.config.controlStatements.function.length);
+
+        //Read the function code and translate it in miniSL code
+        let miniSLFunctionCode = this.readAnnotations(i + 1);
+
+        if (miniSLFunctionCode.length > 1) {
+            this.annotations.splice(i, miniSLFunctionCode.length + 1);
+            miniSLFunctionCode.pop(); // Remove last "end" statement
+
+            // Save the function code in the map
+            this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
+        }
     }
 }
 

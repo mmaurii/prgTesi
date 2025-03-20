@@ -244,7 +244,7 @@ function calc() {
     return 0;
 }
 // miniSL: end
-// miniSL: call main()
+// miniSL: invoke main()
 function main() {
     // miniSL: invoke calc50()
     calc50();

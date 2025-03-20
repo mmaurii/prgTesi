@@ -45,7 +45,7 @@ var input1;
         return true;
     }
     // miniSL: end//
-    // miniSL: call main(jobs,m,r,isVipUser,username,param)//
+    // miniSL: invoke main(jobs,m,r,isVipUser,username,param)//
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)//
         for (var i = 0; i < m; i++) {

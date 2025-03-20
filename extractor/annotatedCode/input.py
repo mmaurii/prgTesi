@@ -33,7 +33,7 @@ def calcolaStipendio(calcola_stipendio_mensile: Callable[[int], float], ruolo: s
 def calcolaStipendioMensile(mensilita: int) -> float:
     return 36 / mensilita
 
-# miniSL: call(jobs,m,r,isVipUser,username,param)
+# miniSL: invoke main(jobs,m,r,isVipUser,username,param)
 def main(jobs: List[Any], m: int, r: int, isVipUser: bool, param: Any, username: str) -> None:
     # miniSL: for(i,m)
     for i in range(m):

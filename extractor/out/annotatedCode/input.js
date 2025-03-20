@@ -35,7 +35,7 @@ var input;
     function calcolaStipendioMensile(mensilità) {
         return 36 / mensilità;
     }
-    // miniSL: call(jobs,m,r,isVipUser,username,param)
+    // miniSL: invoke(jobs,m,r,isVipUser,username,param)
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)
         for (var i = 0; i < m; i++) {

@@ -305,11 +305,11 @@ function calc1(): number {
 // miniSL: function calc()
 function calc(): number {
     // miniSL: call randomFN()
-    return 0;
+    return Math.random() * 1000;
 }
 // miniSL: end
 
-// miniSL: call main()
+// miniSL: invoke main()
 function main(): void {
     // miniSL: invoke calc50()
     calc50();
