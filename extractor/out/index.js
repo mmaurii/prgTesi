@@ -62,7 +62,7 @@ var Extractor = /** @class */ (function () {
     function Extractor() {
         this.miniSLServices = "";
         this.miniSLFunctionCode = new Map();
-        this.annotatedCodeFilePath = "./annotatedCode/input2.ts";
+        this.annotatedCodeFilePath = "./annotatedCode/input0.py";
         this.extractorConfigFilePath = './extractorConfig.json';
         //flag to stop finding function annotations
         this.endOfAnnotation = true;
@@ -95,20 +95,25 @@ var Extractor = /** @class */ (function () {
                             console.error("Annotations not found in the file");
                             return [2 /*return*/];
                         }
-                        //Reading the function annotations and saveing the relative miniSL code in a map
-                        this.readFunctionAnnotations();
-                        //Reading the main annotation and generating miniSL code
-                        miniSLCode += this.readAnnotations().join("");
                         return [3 /*break*/, 5];
                     case 4:
                         error_2 = _d.sent();
                         console.error("Error while reading the file: ", error_2);
                         return [3 /*break*/, 5];
                     case 5:
-                        //adding the miniSL services to the miniSL code
-                        miniSLCode = this.miniSLServices + miniSLCode;
-                        indentedCode = this.indentMiniSLCode(miniSLCode);
-                        console.log(indentedCode);
+                        try {
+                            //Reading the function annotations and saveing the relative miniSL code in a map
+                            this.readFunctionAnnotations();
+                            //Reading the main annotation and generating miniSL code
+                            miniSLCode += this.readAnnotations().join("");
+                            //adding the miniSL services to the miniSL code
+                            miniSLCode = this.miniSLServices + miniSLCode;
+                            indentedCode = this.indentMiniSLCode(miniSLCode);
+                            console.log(indentedCode);
+                        }
+                        catch (error) {
+                            console.error("Error while extracting the code: ", error);
+                        }
                         return [2 /*return*/];
                 }
             });
@@ -260,55 +265,72 @@ var Extractor = /** @class */ (function () {
         var closedStatements = 0;
         for (var i = index; i < this.annotations.length && (openedStatements >= closedStatements); i++) {
             //selecting the unspaced annotation controlStatements
-            var ann = this.annotations[i];
-            var unspacedAnn = ann.replace(/\s/g, "");
-            unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
-            var startIndex = unspacedAnn.indexOf("".concat(this.config.startAnnotation).concat(this.config.miniSLID, ":")) + this.config.startAnnotation.length + this.config.miniSLID.length + 1;
-            var endIndex = unspacedAnn.indexOf("(", startIndex);
+            var annotatedLine = this.annotations[i];
+            //let unspacedAnn = ann.replace(/\s/g, "");
+            //migliorabile
+            var miniSLComment = this.config.startAnnotation + " " + this.config.miniSLID + ":";
+            //usable on filter
+            var startIndex = annotatedLine.indexOf(miniSLComment) + miniSLComment.length;
+            var endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex) : annotatedLine.length;
+            var ann = annotatedLine.substring(startIndex, endIndex).trim();
+            //start to identify the controlStatements type
+            endIndex = ann.indexOf("(");
             if (endIndex === -1) {
-                var statement = unspacedAnn.substring(startIndex);
-                if (statement === this.config.controlStatements.end) {
+                //check if the annotation is a control statement
+                if (ann === this.config.controlStatements.end) {
                     miniSLCode.push(this.writeCloseStatement());
                     closedStatements++;
                 }
-                else if (statement === this.config.controlStatements.else) {
+                else if (ann === this.config.controlStatements.else) {
                     miniSLCode.push(this.writeElse());
                 }
                 else {
-                    console.error("Unknown statement: ".concat(statement));
+                    console.error("Unknown statement: ".concat(ann));
                     return;
                 }
             }
             else {
-                //selecting the controlStatements and their guard parameters
-                var statement = unspacedAnn.substring(startIndex, endIndex);
+                //selecting the parameters of the controlStatements 
                 startIndex = endIndex + 1;
-                endIndex = unspacedAnn.lastIndexOf(")");
-                var params = unspacedAnn.substring(startIndex, endIndex).trim();
-                if (statement === this.config.controlStatements.for) {
+                endIndex = ann.lastIndexOf(")");
+                var params = ann.substring(startIndex, endIndex).trim();
+                ann = ann.substring(0, startIndex - 1);
+                ann = ann.replace(/\s/g, "");
+                if (ann === this.config.controlStatements.for) {
                     miniSLCode.push(this.writeFor(params));
                     openedStatements++;
                 }
-                else if (statement === this.config.controlStatements.if) {
-                    var guard = ann.substring(ann.indexOf("(") + 1, ann.lastIndexOf(")"));
+                else if (ann === this.config.controlStatements.if) {
+                    var guard = annotatedLine.substring(annotatedLine.indexOf("(") + 1, annotatedLine.lastIndexOf(")"));
                     miniSLCode.push(this.writeIf(guard));
                     openedStatements++;
                 }
-                else if (statement.startsWith(this.config.controlStatements.invoke)) {
-                    var fnName = statement.substring(this.config.controlStatements.invoke.length);
+                else if (ann.startsWith(this.config.controlStatements.invoke)) {
+                    var fnName = ann.substring(this.config.controlStatements.invoke.length);
                     miniSLCode.push(this.getFunctionInvoked(i, fnName));
                 }
-                else if (statement.startsWith(this.config.controlStatements.call + "main")) {
+                else if (ann.startsWith(this.config.controlStatements.function)) {
+                    var fnName = ann.substring(this.config.controlStatements.function.length);
+                    //Read the function code and translate it in miniSL code
+                    var miniSLFunctionCode = this.readAnnotations(i + 1);
+                    if (miniSLFunctionCode.length > 1) {
+                        this.annotations.splice(i, miniSLFunctionCode.length + 1);
+                        miniSLFunctionCode.pop(); // Remove last "end" statement
+                        i--;
+                        // Save the function code in the map
+                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
+                    }
+                }
+                else if (ann.startsWith(this.config.controlStatements.call + "main")) {
                     miniSLCode.push(this.writeMain(params));
                     openedStatements++;
                 }
-                else if (statement.startsWith(this.config.controlStatements.call)) {
-                    var fnName = statement.substring(this.config.controlStatements.call.length);
+                else if (ann.startsWith(this.config.controlStatements.call)) {
+                    var fnName = ann.substring(this.config.controlStatements.call.length);
                     miniSLCode.push(this.writeCall(fnName, params) + "\n");
                 }
                 else {
-                    console.error("Unknown statement: ".concat(statement));
-                    return;
+                    throw new Error("Unknown statement: ".concat(ann));
                 }
             }
         }

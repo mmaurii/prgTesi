@@ -34,7 +34,7 @@ class Extractor {
     private miniSLFunctionCode = new Map();
     private annotations;
     private config: Config;
-    private annotatedCodeFilePath = "./annotatedCode/input2.ts";
+    private annotatedCodeFilePath = "./annotatedCode/input0.py";
     private extractorConfigFilePath = './extractorConfig.json';
     //flag to stop finding function annotations
     private endOfAnnotation = true;
@@ -54,23 +54,28 @@ class Extractor {
                 console.error("Annotations not found in the file");
                 return;
             }
+        } catch (error) {
+            console.error("Error while reading the file: ", error);
+        }
 
+        try {
             //Reading the function annotations and saveing the relative miniSL code in a map
             this.readFunctionAnnotations();
 
             //Reading the main annotation and generating miniSL code
             miniSLCode += this.readAnnotations().join("");
+
+
+            //adding the miniSL services to the miniSL code
+            miniSLCode = this.miniSLServices + miniSLCode;
+
+            //indenting code
+            let indentedCode = this.indentMiniSLCode(miniSLCode);
+
+            console.log(indentedCode);
         } catch (error) {
-            console.error("Error while reading the file: ", error);
+            console.error("Error while extracting the code: ", error);
         }
-
-        //adding the miniSL services to the miniSL code
-        miniSLCode = this.miniSLServices + miniSLCode;
-
-        //indenting code
-        let indentedCode = this.indentMiniSLCode(miniSLCode);
-
-        console.log(indentedCode);
     }
 
     /**
@@ -93,9 +98,9 @@ class Extractor {
         const ast = acorn.parse(variables[1], { ecmaVersion: 2020 });
 
         //check if the second parameter is an arithmetic expression
-        if(this.checkArithmeticExpression(ast)){
+        if (this.checkArithmeticExpression(ast)) {
             return `for(${variables[0]} in range(0, ${variables[1]})) {\n`;
-        }else{
+        } else {
             throw new Error("the second parameter of for statement must be an expression that result in a number");
         }
     }
@@ -173,7 +178,7 @@ class Extractor {
      * @returns miniSL code for the main function in a string format
      */
     private writeMain(params: string): string {
-        if(params.charAt(params.length- 1) === "," || params.charAt(0) === ","){
+        if (params.charAt(params.length - 1) === "," || params.charAt(0) === ",") {
             throw new Error("Invalid syntax main can't have empty parameters");
         }
         const variables = params.split(",");
@@ -181,7 +186,7 @@ class Extractor {
         const variablesMapped = variables.map(i => {
             if (i.match(regex)) {
                 return i;
-            }else{
+            } else {
                 throw new Error("Invalid parameter passed to main function");
             }
         });
@@ -232,49 +237,69 @@ class Extractor {
 
         for (let i = index; i < this.annotations.length && (openedStatements >= closedStatements); i++) {
             //selecting the unspaced annotation controlStatements
-            const ann = this.annotations[i];
-            let unspacedAnn = ann.replace(/\s/g, "");
-            unspacedAnn = this.config.endAnnotation.length > 0 ? unspacedAnn.slice(0, -this.config.endAnnotation.length) : unspacedAnn;
-            let startIndex = unspacedAnn.indexOf(`${this.config.startAnnotation}${this.config.miniSLID}:`) + this.config.startAnnotation.length + this.config.miniSLID.length + 1;
-            let endIndex = unspacedAnn.indexOf("(", startIndex);
+            const annotatedLine = this.annotations[i];
+            //let unspacedAnn = ann.replace(/\s/g, "");
+            //migliorabile
+            const miniSLComment = this.config.startAnnotation + " " + this.config.miniSLID + ":";
+            //usable on filter
+            let startIndex = annotatedLine.indexOf(miniSLComment) + miniSLComment.length;
+            let endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex): annotatedLine.length;
+            let ann = annotatedLine.substring(startIndex, endIndex).trim();
+
+            //start to identify the controlStatements type
+            endIndex = ann.indexOf("(");
 
             if (endIndex === -1) {
-                const statement = unspacedAnn.substring(startIndex);
-                if (statement === this.config.controlStatements.end) {
+                //check if the annotation is a control statement
+                if (ann === this.config.controlStatements.end) {
                     miniSLCode.push(this.writeCloseStatement());
                     closedStatements++;
-                } else if (statement === this.config.controlStatements.else) {
+                } else if (ann === this.config.controlStatements.else) {
                     miniSLCode.push(this.writeElse());
                 } else {
-                    console.error(`Unknown statement: ${statement}`);
+                    console.error(`Unknown statement: ${ann}`);
                     return;
                 }
             } else {
-                //selecting the controlStatements and their guard parameters
-                const statement = unspacedAnn.substring(startIndex, endIndex);
+                //selecting the parameters of the controlStatements 
                 startIndex = endIndex + 1;
-                endIndex = unspacedAnn.lastIndexOf(")");
-                const params = unspacedAnn.substring(startIndex, endIndex).trim();
+                endIndex = ann.lastIndexOf(")");
+                const params = ann.substring(startIndex, endIndex).trim();
+                ann = ann.substring(0, startIndex - 1);
+                ann = ann.replace(/\s/g, "");
 
-                if (statement === this.config.controlStatements.for) {
+                if (ann === this.config.controlStatements.for) {
                     miniSLCode.push(this.writeFor(params));
                     openedStatements++;
-                } else if (statement === this.config.controlStatements.if) {
-                    const guard = ann.substring(ann.indexOf("(") + 1, ann.lastIndexOf(")"));
+                } else if (ann === this.config.controlStatements.if) {
+                    const guard = annotatedLine.substring(annotatedLine.indexOf("(") + 1, annotatedLine.lastIndexOf(")"));
                     miniSLCode.push(this.writeIf(guard));
                     openedStatements++;
-                } else if (statement.startsWith(this.config.controlStatements.invoke)) {
-                    const fnName = statement.substring(this.config.controlStatements.invoke.length);
+                } else if (ann.startsWith(this.config.controlStatements.invoke)) {
+                    const fnName = ann.substring(this.config.controlStatements.invoke.length);
                     miniSLCode.push(this.getFunctionInvoked(i, fnName));
-                } else if (statement.startsWith(this.config.controlStatements.call + "main")) {
+                }else if (ann.startsWith(this.config.controlStatements.function)) {
+                    const fnName = ann.substring(this.config.controlStatements.function.length);
+
+                    //Read the function code and translate it in miniSL code
+                    let miniSLFunctionCode = this.readAnnotations(i + 1);
+
+                    if (miniSLFunctionCode.length > 1) {
+                        this.annotations.splice(i, miniSLFunctionCode.length + 1);
+                        miniSLFunctionCode.pop(); // Remove last "end" statement
+                        i--;
+
+                        // Save the function code in the map
+                        this.miniSLFunctionCode.set(fnName, miniSLFunctionCode.join(""));
+                    }
+                } else if (ann.startsWith(this.config.controlStatements.call + "main")) {
                     miniSLCode.push(this.writeMain(params));
                     openedStatements++;
-                } else if (statement.startsWith(this.config.controlStatements.call)) {
-                    const fnName = statement.substring(this.config.controlStatements.call.length);
+                } else if (ann.startsWith(this.config.controlStatements.call)) {
+                    const fnName = ann.substring(this.config.controlStatements.call.length);
                     miniSLCode.push(this.writeCall(fnName, params) + "\n");
                 } else {
-                    console.error(`Unknown statement: ${statement}`);
-                    return;
+                    throw new Error(`Unknown statement: ${ann}`);
                 }
             }
         }
@@ -341,12 +366,12 @@ class Extractor {
      * @param typeExpression boolean is a flag that means the expression is a boolean expression if it's true 
      *                       or an arithmetic expression if it's false
      * @returns boolean true if the expression is valid, false otherwise
-     */ 
-    private checkExpression(ast: any, typeExpression:boolean): boolean {
+     */
+    private checkExpression(ast: any, typeExpression: boolean): boolean {
         if (!ast || !ast.body || ast.body.length !== 1) return false;
         const node = ast.body[0];
         if (node.type !== "ExpressionStatement") return false;
-        
+
         return this.validateExpression(node.expression, typeExpression);
     }
 
@@ -357,7 +382,7 @@ class Extractor {
      *                       or an arithmetic expression if it's false 
      * @returns true if the expression is boolean, false otherwise
      */
-    private validateExpression(node: any, typeExpression:boolean): boolean {
+    private validateExpression(node: any, typeExpression: boolean): boolean {
         switch (node.type) {
             case "Literal":
                 return typeof node.value === "boolean" || typeof node.value === "number";
@@ -376,7 +401,7 @@ class Extractor {
                 if (["<", ">", "<=", ">=", "==", "!="].includes(node.operator)) {
                     // Comparison: both sides must be valid (either numbers, booleans, or arithmetic expressions)
                     return ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
-                            (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
+                        (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
                 }
                 return false;
             case "ParenthesizedExpression":
@@ -399,7 +424,7 @@ class Extractor {
                 return this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right);
             case "BinaryExpression": // >, <, >=, <=, ==, !=
                 return ["<", ">", "<=", ">=", "==", "!="].includes(node.operator) &&
-                        ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
+                    ((this.validateBooleanExpression(node.left) && this.validateBooleanExpression(node.right)) ||
                         (this.validateArithmeticExpression(node.left) && this.validateArithmeticExpression(node.right)));
             case "UnaryExpression": // !true
                 return node.operator === "!" && this.validateBooleanExpression(node.argument);
@@ -411,7 +436,7 @@ class Extractor {
                 return false;
         }
     }
-    
+
     /**
      * This function recursively validates the expression AST to ensure it is a valid arithmetic expression
      * @param node AST node
@@ -423,8 +448,8 @@ class Extractor {
                 return typeof node.value === "number";
             case "BinaryExpression": // +, -, *, /
                 return ["+", "-", "*", "/"].includes(node.operator) &&
-                       this.validateArithmeticExpression(node.left) &&
-                       this.validateArithmeticExpression(node.right);
+                    this.validateArithmeticExpression(node.left) &&
+                    this.validateArithmeticExpression(node.right);
             case "Identifier":
                 return true; // Assuming variables can be numbers
             case "ParenthesizedExpression":
@@ -433,20 +458,20 @@ class Extractor {
                 return false;
         }
     }
-    
+
     /**
      * Validate the expression AST to ensure it is a valid arithmetic expression
      * @param ast expression AST
      * @returns boolean true if the expression is valid, false otherwise
-     */ 
+     */
     private checkArithmeticExpression(ast: any): boolean {
         if (!ast || !ast.body || ast.body.length !== 1) return false;
         const node = ast.body[0];
         if (node.type !== "ExpressionStatement") return false;
-        
+
         return this.validateArithmeticExpression(node.expression);
     }
-    
+
     /**
      * This function reads the function annotations and saves the relative miniSL code in a map
      * @param index of the next readed annotation from the annotations array
@@ -464,9 +489,9 @@ class Extractor {
 
                 const statement = unspacedAnn.substring(startIndex, endIndex);
                 startIndex = endIndex + 1;
-      /*           endIndex = unspacedAnn.lastIndexOf(")");
-                const params = unspacedAnn.substring(startIndex, endIndex);
- */
+                /*           endIndex = unspacedAnn.lastIndexOf(")");
+                          const params = unspacedAnn.substring(startIndex, endIndex);
+           */
                 if (statement.startsWith(this.config.controlStatements.function)) {
                     const fnName = statement.substring(this.config.controlStatements.function.length);
 

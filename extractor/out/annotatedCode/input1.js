@@ -29,11 +29,11 @@ var input1;
     // miniSL: end//
     // miniSL: function calcolaStipendio(calcolaStipendioMensile(),ruolo)//
     function calcolaStipendio(calcolaStipendioMensile, ruolo) {
-        // miniSL: call calcolaStipendioMensile(calc())//
+        // miniSL: call calcolaStipendioMensile(calc)//
         var stp = calcolaStipendioMensile(12);
         // miniSL: if(ruolo)//
         if (ruolo === "manager") {
-            // miniSL: call calcolaStipendioMensile(calc())//
+            // miniSL: call calcolaStipendioMensile(calc)//
             stp = calcolaStipendioMensile(14);
             // miniSL: else//
         }
@@ -80,12 +80,13 @@ var input1;
         }
         // miniSL: end//
         //passo funzioni a funzioni
-        // miniSL: if(calcolaStipendio(calcolaStipendioMensile(), manager))//
+        //la guardia non essendo un'espressione booleana o aritmetica viene interpretata come call avendo le parenesi 
+        // miniSL: if(calcolaStipendio(calcolaStipendioMensile, manager))//
         if (calcolaStipendio(calcolaStipendioMensile, "manager")) {
             console.log("Stipendio calcolato per manager");
         }
         // miniSL: end//
-        // miniSL: call calcolaStipendio(calcolaStipendioMensile(), employee)//
+        // miniSL: call calcolaStipendio(calcolaStipendioMensile, employee)//
         calcolaStipendio(calcolaStipendioMensile, "employee");
     }
     // miniSL: end//

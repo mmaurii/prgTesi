@@ -63,12 +63,12 @@ def main(jobs: List[Any], m: int, r: int, isVipUser: bool, param: Any, username:
         VipService(param)
     # miniSL: end
     
-    # miniSL: if(calcolaStipendio(calcolaStipendioMensile(), manager))
+    # miniSL: if(calcolaStipendio(calcolaStipendioMensile, manager))
     if calcolaStipendio(calcolaStipendioMensile, "manager"):
         print("Stipendio calcolato per manager")
     # miniSL: end
     
-    # miniSL: call calcolaStipendio(calcolaStipendioMensile(), employee)
+    # miniSL: call calcolaStipendio(calcolaStipendioMensile, employee)
     calcolaStipendio(calcolaStipendioMensile, "employee")
     # miniSL: end
 
