@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/node": "^22.13.4",
+    "acorn": "^8.14.1",
+    "fs": "^0.0.1-security",
+    "prettier": "^3.5.3"
+  }
+}
