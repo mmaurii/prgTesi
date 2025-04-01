@@ -1,25 +1,8 @@
 import * as fs from 'fs';
 import * as acorn from "acorn";
 import { exit } from 'process';
-
-interface Config {
-    //character that identifies the start of the inline comment
-    startAnnotation: string;
-    //character that identifies the end of the inline comment, can be empty
-    endAnnotation: string;
-    //miniSL annotation identifier
-    miniSLID: string;
-    //miniSL statements
-    controlStatements: {
-        "for": string;
-        "call": string;
-        "if": string;
-        "else": string;
-        "end": string;
-        "function": string;
-        "invoke": string;
-    };
-}
+import { RecursionChecker } from './recursionChecker.js';
+//import { Config } from './config.js';
 
 async function readFile(path: string): Promise<string> {
     try {
@@ -31,12 +14,12 @@ async function readFile(path: string): Promise<string> {
 }
 
 class Extractor {
+    private config: Config;
     private miniSLServices = "";
     private miniSLFunctionCode = new Map();
     private annotations;
-    private config: Config;
-    private annotatedCodeFilePath = "./annotatedCode/input.ts";
     private extractorConfigFilePath = './extractorConfig.json';
+    private annotatedCodeFilePath = "./annotatedCode/inputRecursive.ts";
     //flag to stop finding function annotations
     private endOfAnnotation = true;
 
@@ -56,6 +39,14 @@ class Extractor {
         }
 
         try {
+            //Recursion checking
+            const recursionChecker = new RecursionChecker(this.annotations, this.config);
+            recursionChecker.printCallGraph();
+            if(recursionChecker.haveRecursiveFunction("main")){
+                console.error("Recursion detected in the code");
+                return;
+            }
+
             //Reading the function annotations and saveing the relative miniSL code in a map
             this.findFunctionAnnotations();
 
@@ -486,6 +477,7 @@ class Extractor {
                 startIndex = endIndex + 1;
 
                 if (annotation.startsWith(this.config.controlStatements.function)) {
+
                     this.readFunctionAnnotations(i, annotation);
                     i--;
                 }

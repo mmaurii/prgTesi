@@ -39,6 +39,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var acorn = require("acorn");
 var process_1 = require("process");
+var recursionChecker_js_1 = require("./recursionChecker.js");
+//import { Config } from './config.js';
 function readFile(path) {
     return __awaiter(this, void 0, void 0, function () {
         var data, error_1;
@@ -63,14 +65,14 @@ var Extractor = /** @class */ (function () {
     function Extractor() {
         this.miniSLServices = "";
         this.miniSLFunctionCode = new Map();
-        this.annotatedCodeFilePath = "./annotatedCode/input.ts";
         this.extractorConfigFilePath = './extractorConfig.json';
+        this.annotatedCodeFilePath = "./annotatedCode/inputRecursive.ts";
         //flag to stop finding function annotations
         this.endOfAnnotation = true;
     }
     Extractor.prototype.extract = function () {
         return __awaiter(this, arguments, void 0, function (path) {
-            var miniSLCode, _a, _b, _c, lines, indentedCode;
+            var miniSLCode, _a, _b, _c, lines, recursionChecker, indentedCode;
             var _this = this;
             if (path === void 0) { path = this.annotatedCodeFilePath; }
             return __generator(this, function (_d) {
@@ -94,6 +96,12 @@ var Extractor = /** @class */ (function () {
                             return [2 /*return*/];
                         }
                         try {
+                            recursionChecker = new recursionChecker_js_1.RecursionChecker(this.annotations, this.config);
+                            recursionChecker.printCallGraph();
+                            if (recursionChecker.haveRecursiveFunction("main")) {
+                                console.error("Recursion detected in the code");
+                                return [2 /*return*/];
+                            }
                             //Reading the function annotations and saveing the relative miniSL code in a map
                             this.findFunctionAnnotations();
                             //Reading the main annotation and generating miniSL code

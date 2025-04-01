@@ -241,7 +241,7 @@ function calc1() {
 // miniSL: function calc()
 function calc() {
     // miniSL: call randomFN()
-    return 0;
+    return Math.random() * 1000;
 }
 // miniSL: end
 // miniSL: invoke main()

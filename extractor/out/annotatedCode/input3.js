@@ -1,5 +1,5 @@
-var input;
-(function (input) {
+var input0;
+(function (input0) {
     function map(jobs, index) {
         console.log("Mapping jobs for index ".concat(index));
         // Implementa la logica della funzione di mappatura qui
@@ -21,20 +21,34 @@ var input;
     function VipService(param) {
         console.log("VIP service called with param: ".concat(param));
     }
-    function calcolaStipendio(calcolaStipendioMensile, ruolo) {
-        var stp = calcolaStipendioMensile(12);
-        if (ruolo === "manager") {
-            stp = calcolaStipendioMensile(14);
+    function calc() {
+        return Math.random() * 1000;
+    }
+    // miniSL: function calcolaStipendio(calcolaStipendioMensile,flag)
+    function calcolaStipendio(calcolaStipendioMensile, flag) {
+        // miniSL: invoke calcolaStipendioMensile(calc)
+        var stp = calcolaStipendioMensile(calc);
+        // miniSL: if(flag)
+        if (flag) {
+            // miniSL: invoke calcolaStipendioMensile(calc)
+            stp = calcolaStipendioMensile(calc);
+            // miniSL: else
         }
         else {
-            return false;
+            // miniSL: call calc()
+            return calc() > 500;
         }
+        // miniSL: end
         console.log("Stipendio calcolato: " + stp);
         return true;
     }
-    function calcolaStipendioMensile(mensilità) {
-        return 36 / mensilità;
+    // miniSL: end
+    // miniSL: function calcolaStipendioMensile(calc)
+    function calcolaStipendioMensile(calc) {
+        // miniSL: call calc()
+        return calc();
     }
+    // miniSL: end
     // miniSL: invoke main(jobs,m,r,isVipUser,username,param)
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)
@@ -49,9 +63,9 @@ var input;
             // miniSL: end
         }
         // miniSL: end
-        // miniSL: if(isVipUser)
+        // miniSL: if(5 == 5)
         if (isVipUser) {
-            // miniSL: if(IsPremiumUser(username))
+            // miniSL: if(IsPremiumUser((username && true)||param))
             if (IsPremiumUser(username)) {
                 // miniSL: call PremiumService(param)
                 PremiumService(param);
@@ -69,15 +83,10 @@ var input;
             VipService(param);
         }
         // miniSL: end
-        //passo funzioni a funzioni
-        // miniSL: if(calcolaStipendio(calcolaStipendioMensile, manager))
-        if (calcolaStipendio(calcolaStipendioMensile, "manager")) {
-            console.log("Stipendio calcolato per manager");
-        }
-        // miniSL: end
-        // miniSL: call calcolaStipendio(calcolaStipendioMensile, employee)
-        calcolaStipendio(calcolaStipendioMensile, "employee");
+        // miniSL: invoke calcolaStipendio(calcolaStipendioMensile, true)
+        calcolaStipendio(calcolaStipendioMensile, true);
     }
+    // miniSL: end
     // Esempio di utilizzo
     var jobs = ['Job1', 'Job2', 'Job3'];
     var m = 3;
@@ -86,5 +95,33 @@ var input;
     var param = 'exampleParam';
     var username = "user";
     main(jobs, m, r, isPremiumUser, param, username);
-})(input || (input = {}));
-//# sourceMappingURL=input.js.map
+    // TEST FOR IF GUARD EXPRESSION
+    //- miniSL: if(true && false)
+    //- miniSL: if(5 > 3)
+    //- miniSL: if(10 + 5)
+    //- miniSL: if(x * y - 2)
+    //- miniSL: if((a > b) && (c < d))
+    //- miniSL: if(x > 10 + 5)
+    //- miniSL: if(3+x > 10 + 5)
+    //- miniSL: if(3+x > 10 + 5 < 3 +2)
+    //- miniSL: if(3+x > 10 + 5 && 3+x > 10 + 5 < 3 +2)
+    //- miniSL: if(5 * (x || y))
+    //- miniSL: if(true + 1)
+    //- miniSL: if(!((a + b) > (c * 2)) || (d - 3 < e / 2))
+    //- miniSL: if(!(((a + b) == (b+c)) + (c * 2)) || (d - 3 < e / 2))
+    //- miniSL: if(!((a + b == b+c) < (c * 2)) || (d - 3 < e / 2))
+    //- miniSL: if(invalid syntax)
+    // TEST FOR ITERATOR GUARD EXPREXION
+    //- miniSL: for(i,3)
+    //- miniSL: for(i,3*2)
+    //- miniSL: for(i,3+2*1) 
+    //- miniSL: for(i,(3+2)*1)
+    //- miniSL: for(i1,3+2*1)  
+    //- miniSL: for(ik,3+2*1)  
+    //- miniSL: for(,3+2*1)  
+    //- miniSL: for(1,3+2+1)  
+    //- miniSL: for(iKj(),3+2+1)  
+    //- miniSL: for(12JKk,3+2-1)
+    //- miniSL: for(KKK,3+2/1)  
+})(input0 || (input0 = {}));
+//# sourceMappingURL=input3.js.map
