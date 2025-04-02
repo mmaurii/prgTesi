@@ -3,34 +3,34 @@
 // If a function calls itself directly or indirectly, it is considered recursive.
 
 export class CallGraph {
-    private graph: Record<string, string[]> = {};
+    private graph: Record<string, Set<string>> = {};
 
     addFunction(name: string): void {
         if (!this.graph[name]) {
-            this.graph[name] = [];
+            this.graph[name] = new Set<string>();
         }
     }
 
     addCall(from: string, to: string): void {
         this.addFunction(from);
         this.addFunction(to);
-        this.graph[from].push(to);
+        this.graph[from].add(to);
     }
 
-    getCalls(functionName: string): string[] {
-        return this.graph[functionName] || [];
+    getCalls(functionName: string): Set<string> {
+        return this.graph[functionName] || new Set<string>();
     }
 
     print(): string {
         let result = "Call Graph:\n";
         for (const fn in this.graph) {
-            result += `${fn} -> ${this.graph[fn].join(", ")}\n`;
+            result += `${fn} -> ${Array.from(this.graph[fn]).join(", ")}\n`;
         }
         return result;
     }
 
-    getItem(key: string): string[] {
-        return this.graph[key] || [];
+    getItem(key: string): Set<string> {
+        return this.graph[key] || new Set<string>();
     }
 }
 
@@ -60,9 +60,9 @@ export class RecursionChecker {
             visited.add(currentFunction);
 
             const calledFunctions = this.callGraph.getItem(currentFunction);
-            for (const calledFunction of calledFunctions) {
+            calledFunctions.forEach((calledFunction) => {
                 stack.push(calledFunction);
-            }
+            });
         }
 
         return false;

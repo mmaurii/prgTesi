@@ -10,26 +10,26 @@ var CallGraph = /** @class */ (function () {
     }
     CallGraph.prototype.addFunction = function (name) {
         if (!this.graph[name]) {
-            this.graph[name] = [];
+            this.graph[name] = new Set();
         }
     };
     CallGraph.prototype.addCall = function (from, to) {
         this.addFunction(from);
         this.addFunction(to);
-        this.graph[from].push(to);
+        this.graph[from].add(to);
     };
     CallGraph.prototype.getCalls = function (functionName) {
-        return this.graph[functionName] || [];
+        return this.graph[functionName] || new Set();
     };
     CallGraph.prototype.print = function () {
         var result = "Call Graph:\n";
         for (var fn in this.graph) {
-            result += "".concat(fn, " -> ").concat(this.graph[fn].join(", "), "\n");
+            result += "".concat(fn, " -> ").concat(Array.from(this.graph[fn]).join(", "), "\n");
         }
         return result;
     };
     CallGraph.prototype.getItem = function (key) {
-        return this.graph[key] || [];
+        return this.graph[key] || new Set();
     };
     return CallGraph;
 }());
@@ -51,45 +51,11 @@ var RecursionChecker = /** @class */ (function () {
             }
             visited.add(currentFunction);
             var calledFunctions = this.callGraph.getItem(currentFunction);
-            for (var _i = 0, calledFunctions_1 = calledFunctions; _i < calledFunctions_1.length; _i++) {
-                var calledFunction = calledFunctions_1[_i];
+            calledFunctions.forEach(function (calledFunction) {
                 stack.push(calledFunction);
-            }
+            });
         }
         return false;
-    };
-    RecursionChecker.prototype.buildCallGraph1 = function () {
-        var functionRegex = /function\s+[A-Za-z_][A-Za-z0-9_]*\(/;
-        var invokeRegex = /invoke\s+[A-Za-z_][A-Za-z0-9_]*\(/;
-        var ifRegex = /if\s*\(\s*[^()]*[A-Za-z_][A-Za-z0-9_]*\s*\(/;
-        // Extract function names
-        var match;
-        for (var _i = 0, _a = this.annotations; _i < _a.length; _i++) {
-            var annotation = _a[_i];
-            if ((match = functionRegex.exec(annotation)) !== null) {
-                var functionName = match[0].split(' ')[1].split('(')[0];
-                this.callGraph.addFunction(functionName); // Initialize empty call list
-            }
-        }
-        /*         while ((match = functionRegex.exec(this.annotations)) !== null) {
-                    this.callGraph.addFunction(match); // Initialize empty call list
-                } */
-        // Extract function calls
-        /*         for (const functionName in this.callGraph) {
-                    const bodyMatch = this.annotations.match(functionBodyRegex);
-                    
-                    if (bodyMatch) {
-                        const body = bodyMatch[1];
-                        let callMatch;
-                        while ((callMatch = callRegex.exec(body)) !== null) {
-                            const calledFunction = callMatch[1];
-                            if (calledFunction in this.callGraph) {
-                                this.callGraph.addCall(functionName, calledFunction);
-                            }
-                        }
-                    }
-                }
-         */ 
     };
     RecursionChecker.prototype.buildCallGraph = function () {
         //counters for the opened and closed statements '{ and }'
@@ -109,39 +75,28 @@ var RecursionChecker = /** @class */ (function () {
                 if (ann === this.config.controlStatements.end) {
                     indentLevel.pop();
                 }
-                else if (ann === this.config.controlStatements.else) {
-                }
-                else {
-                    throw new Error("Error: Unknown statement: ".concat(ann));
-                }
             }
             else {
                 //selecting the parameters of the controlStatements 
                 startIndex = endIndex + 1;
                 ann = ann.substring(0, startIndex - 1);
                 ann = ann.replace(/\s/g, "");
-                try {
-                    if (ann.startsWith(this.config.controlStatements.function)) {
-                        var fnName = ann.substring(this.config.controlStatements.function.length);
-                        indentLevel.push(fnName);
-                        this.callGraph.addFunction(fnName);
-                    }
-                    else if (ann.startsWith(this.config.controlStatements.invoke + "main")) {
-                        indentLevel.push("main");
-                        this.callGraph.addFunction("main");
-                    }
-                    else if (ann.startsWith(this.config.controlStatements.invoke)) {
-                        var fnName = ann.substring(this.config.controlStatements.invoke.length);
-                        this.callGraph.addCall(indentLevel[indentLevel.length - 1], fnName);
-                    }
-                    else if (ann === this.config.controlStatements.if || ann === this.config.controlStatements.for) {
-                        //check if the annotation is a control statement
-                        indentLevel.push(indentLevel[indentLevel.length - 1]);
-                    }
+                if (ann.startsWith(this.config.controlStatements.function)) {
+                    var fnName = ann.substring(this.config.controlStatements.function.length);
+                    indentLevel.push(fnName);
+                    this.callGraph.addFunction(fnName);
                 }
-                catch (error) {
-                    console.error("Error while processing the annotation: ".concat(ann, "\nin line:").concat(annotatedLine, "\n"), error);
-                    throw error;
+                else if (ann.startsWith(this.config.controlStatements.invoke + "main")) {
+                    indentLevel.push("main");
+                    this.callGraph.addFunction("main");
+                }
+                else if (ann.startsWith(this.config.controlStatements.invoke)) {
+                    var fnName = ann.substring(this.config.controlStatements.invoke.length);
+                    this.callGraph.addCall(indentLevel[indentLevel.length - 1], fnName);
+                }
+                else if (ann === this.config.controlStatements.if || ann === this.config.controlStatements.for) {
+                    //check if the annotation is a control statement
+                    indentLevel.push(indentLevel[indentLevel.length - 1]);
                 }
             }
         }
