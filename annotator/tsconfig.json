@@ -1,9 +1,11 @@
 {
-    "compilerOptions": {
-      "target": "ES5",
-      "module": "CommonJS",
-      "outDir": "out",
-      "sourceMap": true
-    }
+  "type": "module",
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "outDir": "out",
+    "sourceMap": true,
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true
+  }
 }
-  

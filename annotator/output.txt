@@ -1,0 +1,392 @@
+import * as fs from 'fs';
+
+async function readFile(path: string): Promise<string> {
+  try {
+    const data = await fs.promises.readFile(path, 'utf-8');
+    return data;
+  } catch (error) {
+    console.error('Error while reading the file:\n', error);
+  }
+  return ""; // Return empty string in case of error
+}
+
+class Checker {
+  private path: string;
+
+  constructor(path:any) {
+    if (!path) {
+      throw new Error("Path is undefined");
+    }
+    this.path = path;
+  }
+
+  async check(): Promise<string> {
+    // Simple annotation logic: wrap the text in brackets
+    return `[xhjhxbhjbahsd]`;
+  }
+}
+
+// Example usage:
+try {
+  const annotator = new Checker("./miniSLCode.txt");
+  const annotatedText = annotator.check();
+  console.log(annotatedText); // Output: [Hello, World!]
+} catch (error) {
+  console.error('Error:', error);
+}
+  import * as fs from 'fs';
+    import
+    * as fs
+      * as fs
+        *
+        as
+        fs
+    from
+    'fs'
+      '
+      fs
+      '
+    ;
+// Function: readFile
+  async function readFile(path: string): Promise<string> {
+  try {
+    const data = await fs.promises.readFile(path, 'utf-8');
+    return data;
+  } catch (error) {
+    console.error('Error while reading the file:\n', error);
+  }
+  return ""; // Return empty string in case of error
+}
+    async
+    function
+    readFile
+    (path: string)
+      (
+      path: string
+        path
+        : string
+          :
+          string
+            string
+      )
+    : Promise<string>
+      :
+      Promise<string>
+        Promise
+        <string>
+          <
+          string
+            string
+          >
+    {
+  try {
+    const data = await fs.promises.readFile(path, 'utf-8');
+    return data;
+  } catch (error) {
+    console.error('Error while reading the file:\n', error);
+  }
+  return ""; // Return empty string in case of error
+}
+      {
+      try {
+    const data = await fs.promises.readFile(path, 'utf-8');
+    return data;
+  } catch (error) {
+    console.error('Error while reading the file:\n', error);
+  }
+        try
+        {
+    const data = await fs.promises.readFile(path, 'utf-8');
+    return data;
+  }
+          {
+          const data = await fs.promises.readFile(path, 'utf-8');
+            const
+            data = await fs.promises.readFile(path, 'utf-8')
+              data
+              =
+              await fs.promises.readFile(path, 'utf-8')
+                await
+                fs.promises.readFile(path, 'utf-8')
+                  fs.promises.readFile
+                    fs.promises
+                      fs
+                      .
+                      promises
+                    .
+                    readFile
+                  (path, 'utf-8')
+                    (
+                    path
+                    ,
+                    'utf-8'
+                      '
+                      utf-8
+                      '
+                    )
+            ;
+          return data;
+            return
+            data
+            ;
+          }
+        catch (error) {
+    console.error('Error while reading the file:\n', error);
+  }
+          catch
+          (
+          error
+          )
+          {
+    console.error('Error while reading the file:\n', error);
+  }
+            {
+            console.error('Error while reading the file:\n', error);
+              console.error('Error while reading the file:\n', error)
+                console.error
+                  console
+                  .
+                  error
+                ('Error while reading the file:\n', error)
+                  (
+                  'Error while reading the file:\n'
+                    '
+                    Error while reading the file:
+                    \n
+                    '
+                  ,
+                  error
+                  )
+              ;
+            }
+      return "";
+        return
+        ""
+          "
+          "
+        ;
+      // Return empty string in case of error
+      }
+// Class: Checker
+  class Checker {
+  private path: string;
+
+  constructor(path:any) {
+    if (!path) {
+      throw new Error("Path is undefined");
+    }
+    this.path = path;
+  }
+
+  async check(): Promise<string> {
+    // Simple annotation logic: wrap the text in brackets
+    return `[xhjhxbhjbahsd]`;
+  }
+}
+    class
+    Checker
+    {
+  private path: string;
+
+  constructor(path:any) {
+    if (!path) {
+      throw new Error("Path is undefined");
+    }
+    this.path = path;
+  }
+
+  async check(): Promise<string> {
+    // Simple annotation logic: wrap the text in brackets
+    return `[xhjhxbhjbahsd]`;
+  }
+}
+      {
+      private path: string
+        private
+          private
+        path
+        : string
+          :
+          string
+            string
+      ;
+      constructor(path:any) {
+    if (!path) {
+      throw new Error("Path is undefined");
+    }
+    this.path = path;
+  }
+        constructor
+        (path:any)
+          (
+          path:any
+            path
+            :any
+              :
+              any
+                any
+          )
+        {
+    if (!path) {
+      throw new Error("Path is undefined");
+    }
+    this.path = path;
+  }
+          {
+          if (!path) {
+      throw new Error("Path is undefined");
+    }
+            if
+            (!path)
+              (
+              !path
+                !
+                path
+              )
+            {
+      throw new Error("Path is undefined");
+    }
+              {
+              throw new Error("Path is undefined");
+                throw
+                new Error("Path is undefined")
+                  new
+                  Error
+                  ("Path is undefined")
+                    (
+                    "Path is undefined"
+                      "
+                      Path is undefined
+                      "
+                    )
+                ;
+              }
+          this.path = path;
+            this.path = path
+              this.path
+                this
+                .
+                path
+              =
+              path
+            ;
+          }
+      async check(): Promise<string> {
+    // Simple annotation logic: wrap the text in brackets
+    return `[xhjhxbhjbahsd]`;
+  }
+        async
+        check
+        ()
+          (
+          )
+        : Promise<string>
+          :
+          Promise<string>
+            Promise
+            <string>
+              <
+              string
+                string
+              >
+        {
+    // Simple annotation logic: wrap the text in brackets
+    return `[xhjhxbhjbahsd]`;
+  }
+          {
+          // Simple annotation logic: wrap the text in brackets
+          return `[xhjhxbhjbahsd]`;
+            return
+            `[xhjhxbhjbahsd]`
+              `
+              [xhjhxbhjbahsd]
+              `
+            ;
+          }
+      }
+  // Example usage:
+  try {
+  const annotator = new Checker("./miniSLCode.txt");
+  const annotatedText = annotator.check();
+  console.log(annotatedText); // Output: [Hello, World!]
+} catch (error) {
+  console.error('Error:', error);
+}
+    try
+    {
+  const annotator = new Checker("./miniSLCode.txt");
+  const annotatedText = annotator.check();
+  console.log(annotatedText); // Output: [Hello, World!]
+}
+      {
+      const annotator = new Checker("./miniSLCode.txt");
+        const
+        annotator = new Checker("./miniSLCode.txt")
+          annotator
+          =
+          new Checker("./miniSLCode.txt")
+            new
+            Checker
+            ("./miniSLCode.txt")
+              (
+              "./miniSLCode.txt"
+                "
+                ./miniSLCode.txt
+                "
+              )
+        ;
+      const annotatedText = annotator.check();
+        const
+        annotatedText = annotator.check()
+          annotatedText
+          =
+          annotator.check()
+            annotator.check
+              annotator
+              .
+              check
+            ()
+              (
+              )
+        ;
+      console.log(annotatedText);
+        console.log(annotatedText)
+          console.log
+            console
+            .
+            log
+          (annotatedText)
+            (
+            annotatedText
+            )
+        ;
+      // Output: [Hello, World!]
+      }
+    catch (error) {
+  console.error('Error:', error);
+}
+      catch
+      (
+      error
+      )
+      {
+  console.error('Error:', error);
+}
+        {
+        console.error('Error:', error);
+          console.error('Error:', error)
+            console.error
+              console
+              .
+              error
+            ('Error:', error)
+              (
+              'Error:'
+                '
+                Error:
+                '
+              ,
+              error
+              )
+          ;
+        }

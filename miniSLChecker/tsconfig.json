@@ -1,9 +1,9 @@
 {
-    "compilerOptions": {
-      "target": "ES5",
-      "module": "CommonJS",
+  "compilerOptions": {
+      "target": "ES6",        // Update to a modern ES version
+      "module": "ESNext",        // Use ES modules instead of CommonJS
       "outDir": "out",
-      "sourceMap": true
-    }
+      "sourceMap": true,
+      "moduleResolution": "Node" // Ensure Node.js-style resolution
+  }
 }
-  

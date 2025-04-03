@@ -19,7 +19,7 @@ class Extractor {
     private miniSLFunctionCode = new Map();
     private annotations;
     private extractorConfigFilePath = './extractorConfig.json';
-    private annotatedCodeFilePath = "./annotatedCode/inputRecursive.ts";
+    private annotatedCodeFilePath = "./annotatedCode/input3.ts";
     //flag to stop finding function annotations
     private endOfAnnotation = true;
 

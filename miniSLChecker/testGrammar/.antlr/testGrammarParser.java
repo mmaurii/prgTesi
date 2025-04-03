@@ -1,4 +1,4 @@
-// Generated from c://Users//frizi//Documents//GitHub//prgTesi//miniSLChecker//miniSLGrammar.g4 by ANTLR 4.13.1
+// Generated from c://Users//frizi//Documents//GitHub//prgTesi//miniSLChecker//testGrammar//testGrammar.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
-public class miniSLGrammarParser extends Parser {
+public class testGrammarParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -76,7 +76,7 @@ public class miniSLGrammarParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "miniSLGrammar.g4"; }
+	public String getGrammarFileName() { return "testGrammar.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -87,14 +87,14 @@ public class miniSLGrammarParser extends Parser {
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	public miniSLGrammarParser(TokenStream input) {
+	public testGrammarParser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ChatContext extends ParserRuleContext {
-		public TerminalNode EOF() { return getToken(miniSLGrammarParser.EOF, 0); }
+		public TerminalNode EOF() { return getToken(testGrammarParser.EOF, 0); }
 		public List<LineContext> line() {
 			return getRuleContexts(LineContext.class);
 		}
@@ -154,7 +154,7 @@ public class miniSLGrammarParser extends Parser {
 		public MessageContext message() {
 			return getRuleContext(MessageContext.class,0);
 		}
-		public TerminalNode NEWLINE() { return getToken(miniSLGrammarParser.NEWLINE, 0); }
+		public TerminalNode NEWLINE() { return getToken(testGrammarParser.NEWLINE, 0); }
 		public LineContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -214,13 +214,13 @@ public class miniSLGrammarParser extends Parser {
 		public MentionContext mention(int i) {
 			return getRuleContext(MentionContext.class,i);
 		}
-		public List<TerminalNode> WORD() { return getTokens(miniSLGrammarParser.WORD); }
+		public List<TerminalNode> WORD() { return getTokens(testGrammarParser.WORD); }
 		public TerminalNode WORD(int i) {
-			return getToken(miniSLGrammarParser.WORD, i);
+			return getToken(testGrammarParser.WORD, i);
 		}
-		public List<TerminalNode> WHITESPACE() { return getTokens(miniSLGrammarParser.WHITESPACE); }
+		public List<TerminalNode> WHITESPACE() { return getTokens(testGrammarParser.WHITESPACE); }
 		public TerminalNode WHITESPACE(int i) {
-			return getToken(miniSLGrammarParser.WHITESPACE, i);
+			return getToken(testGrammarParser.WHITESPACE, i);
 		}
 		public MessageContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -308,8 +308,8 @@ public class miniSLGrammarParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class NameContext extends ParserRuleContext {
-		public TerminalNode WORD() { return getToken(miniSLGrammarParser.WORD, 0); }
-		public TerminalNode WHITESPACE() { return getToken(miniSLGrammarParser.WHITESPACE, 0); }
+		public TerminalNode WORD() { return getToken(testGrammarParser.WORD, 0); }
+		public TerminalNode WHITESPACE() { return getToken(testGrammarParser.WHITESPACE, 0); }
 		public NameContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -341,9 +341,9 @@ public class miniSLGrammarParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class CommandContext extends ParserRuleContext {
-		public TerminalNode WHITESPACE() { return getToken(miniSLGrammarParser.WHITESPACE, 0); }
-		public TerminalNode SAYS() { return getToken(miniSLGrammarParser.SAYS, 0); }
-		public TerminalNode SHOUTS() { return getToken(miniSLGrammarParser.SHOUTS, 0); }
+		public TerminalNode WHITESPACE() { return getToken(testGrammarParser.WHITESPACE, 0); }
+		public TerminalNode SAYS() { return getToken(testGrammarParser.SAYS, 0); }
+		public TerminalNode SHOUTS() { return getToken(testGrammarParser.SHOUTS, 0); }
 		public CommandContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -453,9 +453,9 @@ public class miniSLGrammarParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class LinkContext extends ParserRuleContext {
-		public List<TerminalNode> TEXT() { return getTokens(miniSLGrammarParser.TEXT); }
+		public List<TerminalNode> TEXT() { return getTokens(testGrammarParser.TEXT); }
 		public TerminalNode TEXT(int i) {
-			return getToken(miniSLGrammarParser.TEXT, i);
+			return getToken(testGrammarParser.TEXT, i);
 		}
 		public LinkContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -488,7 +488,7 @@ public class miniSLGrammarParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ColorContext extends ParserRuleContext {
-		public TerminalNode WORD() { return getToken(miniSLGrammarParser.WORD, 0); }
+		public TerminalNode WORD() { return getToken(testGrammarParser.WORD, 0); }
 		public MessageContext message() {
 			return getRuleContext(MessageContext.class,0);
 		}
@@ -529,7 +529,7 @@ public class miniSLGrammarParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class MentionContext extends ParserRuleContext {
-		public TerminalNode WORD() { return getToken(miniSLGrammarParser.WORD, 0); }
+		public TerminalNode WORD() { return getToken(testGrammarParser.WORD, 0); }
 		public MentionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -561,9 +561,9 @@ public class miniSLGrammarParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class OperationContext extends ParserRuleContext {
-		public List<TerminalNode> NUMBER() { return getTokens(miniSLGrammarParser.NUMBER); }
+		public List<TerminalNode> NUMBER() { return getTokens(testGrammarParser.NUMBER); }
 		public TerminalNode NUMBER(int i) {
-			return getToken(miniSLGrammarParser.NUMBER, i);
+			return getToken(testGrammarParser.NUMBER, i);
 		}
 		public OperationContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);

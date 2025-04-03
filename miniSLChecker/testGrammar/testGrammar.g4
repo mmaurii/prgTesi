@@ -1,4 +1,4 @@
-grammar miniSLGrammar;
+grammar testGrammar;
 
 /*
  * Parser Rules

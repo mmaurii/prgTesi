@@ -1,28 +1,28 @@
 var input;
 (function (input) {
     function map(jobs, index) {
-        console.log("Mapping jobs for index ".concat(index));
+        console.log(`Mapping jobs for index ${index}`);
         // Implementa la logica della funzione di mappatura qui
     }
     function reduce(jobs, mapIndex, reduceIndex) {
-        console.log("Reducing jobs for mapIndex ".concat(mapIndex, " and reduceIndex ").concat(reduceIndex));
+        console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
         // Implementa la logica della funzione di riduzione qui
     }
     function PremiumService(param) {
-        console.log("Premium service called with param: ".concat(param));
+        console.log(`Premium service called with param: ${param}`);
     }
     function BasicService(param) {
-        console.log("Basic service called with param: ".concat(param));
+        console.log(`Basic service called with param: ${param}`);
     }
     function IsPremiumUser(username) {
         // Logica per determinare se l'utente è premium
         return username === 'premiumUser';
     }
     function VipService(param) {
-        console.log("VIP service called with param: ".concat(param));
+        console.log(`VIP service called with param: ${param}`);
     }
     function calcolaStipendio(calcolaStipendioMensile, ruolo) {
-        var stp = calcolaStipendioMensile(12);
+        let stp = calcolaStipendioMensile(12);
         if (ruolo === "manager") {
             stp = calcolaStipendioMensile(14);
         }
@@ -38,11 +38,11 @@ var input;
     // miniSL: invoke main(jobs,m,r,isVipUser,username,param)
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)
-        for (var i = 0; i < m; i++) {
+        for (let i = 0; i < m; i++) {
             // miniSL: call map(jobs,i)
             map(jobs, i);
             // miniSL: for(j,r)
-            for (var j = 0; j < r; j++) {
+            for (let j = 0; j < r; j++) {
                 // miniSL: call reduce(jobs,i,j)
                 reduce(jobs, i, j);
             }
@@ -79,12 +79,12 @@ var input;
         calcolaStipendio(calcolaStipendioMensile, "employee");
     }
     // Esempio di utilizzo
-    var jobs = ['Job1', 'Job2', 'Job3'];
-    var m = 3;
-    var r = 2;
-    var isPremiumUser = true;
-    var param = 'exampleParam';
-    var username = "user";
+    const jobs = ['Job1', 'Job2', 'Job3'];
+    const m = 3;
+    const r = 2;
+    const isPremiumUser = true;
+    const param = 'exampleParam';
+    const username = "user";
     main(jobs, m, r, isPremiumUser, param, username);
 })(input || (input = {}));
 //# sourceMappingURL=input.js.map
