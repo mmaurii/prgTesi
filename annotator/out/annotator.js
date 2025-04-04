@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as fs from 'fs';
 import Parser from "tree-sitter";
 import TreeSitterTS from "tree-sitter-typescript";
+import { MiniSLAnnotationGenerator } from "./miniSLAnnotationGenerator.js";
 // Extract the correct language parser
 const { typescript } = TreeSitterTS;
 function readFile(path) {
@@ -25,15 +26,18 @@ function readFile(path) {
     });
 }
 class Annotator {
-    constructor(filePath) {
+    constructor(filePathInput, filePathConfig) {
         this.parser = new Parser();
-        this.filePath = filePath;
+        this.filePathInput = filePathInput;
+        this.filePathConfig = filePathConfig;
         this.code = "";
         this.parser.setLanguage(typescript);
     }
     loadFile() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.code = yield readFile(this.filePath);
+            this.code = yield readFile(this.filePathInput);
+            const config = JSON.parse(yield readFile(this.filePathConfig));
+            this.miniSLAnnotatorGenerator = new MiniSLAnnotationGenerator(config);
         });
     }
     getFileContent() {
@@ -41,43 +45,82 @@ class Annotator {
     }
     annotate() {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
+            var _a, _b, _c, _d, _e;
             if (!this.code) {
                 yield this.loadFile();
             }
             // Parse the code
             const tree = this.parser.parse(this.code);
-            const rootNode = tree.rootNode;
-            let indent = "";
+            /*     console.log("AST:\n");
+                console.log(rootNode.toString());
+             */ let indent = "";
             let annotation = "";
-            const stack = [{ node: rootNode, indent: indent }];
+            const edits = [];
+            const stack = [tree.rootNode];
             while (stack.length > 0) {
-                const { node, indent } = stack.pop();
+                const node = stack.pop();
+                if (!node) {
+                    continue;
+                }
                 if (node.type === "function_declaration") {
                     const functionName = (_a = node.childForFieldName("name")) === null || _a === void 0 ? void 0 : _a.text;
-                    annotation += `// Function: ${functionName}\n`;
+                    let functionParams = (_b = node.childForFieldName("parameters")) === null || _b === void 0 ? void 0 : _b.text;
+                    if (functionName && functionParams) {
+                        let params = functionParams.split(",").map(param => param.split(":")[0]);
+                        functionParams = params.join(", ");
+                        if (functionParams.charAt(functionParams.length - 1) !== ")") {
+                            functionParams += ")";
+                        }
+                        const comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
+                        edits.push({ pos: node.startIndex, text: comment });
+                    }
+                    else {
+                        console.error("Error: Function name or parameters not found.");
+                    }
                 }
-                else if (node.type === "class_declaration") {
-                    const className = (_b = node.childForFieldName("name")) === null || _b === void 0 ? void 0 : _b.text;
-                    annotation += `// Class: ${className}\n`;
+                else if (node.type === "if_statement") {
+                    const condition = (_c = node.childForFieldName("condition")) === null || _c === void 0 ? void 0 : _c.text;
+                    if (condition) {
+                        const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition) + "\n";
+                        edits.push({ pos: node.startIndex, text: comment });
+                    }
+                    else {
+                        console.error("Error: If statement condition not found.");
+                    }
                 }
-                else if (node.type === "variable_declaration") {
-                    annotation += `// Variable declaration\n`;
+                else if (node.type === "else_clause") {
+                    const comment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
+                    edits.push({ pos: node.startIndex, text: comment });
                 }
-                annotation += indent + this.code.substring(node.startIndex, node.endIndex) + "\n";
-                // Add children in reverse order so they are processed correctly
-                for (let i = node.children.length - 1; i >= 0; i--) {
-                    stack.push({ node: node.children[i], indent: indent + "  " });
+                else if (node.type === "for_statement") {
+                    const iterator = (_d = node.childForFieldName("init")) === null || _d === void 0 ? void 0 : _d.text;
+                    const end = (_e = node.childForFieldName("end")) === null || _e === void 0 ? void 0 : _e.text;
+                    if (iterator && end) {
+                        const comment = this.miniSLAnnotatorGenerator.getForStatement(iterator, end) + "\n";
+                        edits.push({ pos: node.startIndex, text: comment });
+                    }
+                    else {
+                        console.error("Error: For statement iterator or end not found.");
+                    }
                 }
+                stack.push(...node.children.reverse());
             }
-            return annotation;
+            // Apply edits in reverse order to avoid index shifting
+            edits.sort((a, b) => b.pos - a.pos);
+            let annotatedCode = this.code;
+            for (let edit of edits) {
+                annotatedCode = annotatedCode.slice(0, edit.pos) + edit.text + annotatedCode.slice(edit.pos);
+            }
+            return annotatedCode;
         });
     }
 }
-const filePath = "input.ts";
-const annotator = new Annotator(filePath);
+const filePath = "./inputCode/input3.ts";
+const filePathConfig = "config.json";
+const annotator = new Annotator(filePath, filePathConfig);
 annotator.loadFile().then(() => {
-    console.log(annotator.getFileContent());
+    /*   console.log(annotator.getFileContent())
+     */ 
 }).catch((error) => {
     console.error('Error while loading the file:\n', error);
 });

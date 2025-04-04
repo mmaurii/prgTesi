@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import Parser from "tree-sitter";
 import TreeSitterTS from "tree-sitter-typescript";
+import { MiniSLAnnotationGenerator } from "./miniSLAnnotationGenerator.js";
+import { Config } from "./config.js";
 
 // Extract the correct language parser
 const { typescript } = TreeSitterTS;
@@ -16,18 +18,23 @@ async function readFile(path: string): Promise<string> {
 }
 
 class Annotator {
-  private filePath: string;
+  private filePathInput: string;
+  private filePathConfig: string;
+  private miniSLAnnotatorGenerator: MiniSLAnnotationGenerator;
   private code: string;
   private parser = new Parser();
-  
-  constructor(filePath: string) {
-    this.filePath = filePath;
+
+  constructor(filePathInput: string, filePathConfig: string) {
+    this.filePathInput = filePathInput;
+    this.filePathConfig = filePathConfig;
     this.code = "";
     this.parser.setLanguage(typescript);
   }
 
   async loadFile(): Promise<void> {
-    this.code = await readFile(this.filePath);
+    this.code = await readFile(this.filePathInput);
+    const config: Config = JSON.parse(await readFile(this.filePathConfig));
+    this.miniSLAnnotatorGenerator = new MiniSLAnnotationGenerator(config);
   }
 
   getFileContent(): string {
@@ -35,49 +42,84 @@ class Annotator {
   }
 
   async annotate(): Promise<string> {
-    if(!this.code) {
+    if (!this.code) {
       await this.loadFile()
     }
 
     // Parse the code
     const tree = this.parser.parse(this.code);
-    const rootNode = tree.rootNode;
-    let indent = "";
+/*     console.log("AST:\n");
+    console.log(rootNode.toString());
+ */    let indent = "";
     let annotation = "";
-    const stack: { node: Parser.SyntaxNode; indent: string }[] = [{ node: rootNode, indent: indent }];
+    const edits: { pos: number; text: string }[] = [];
+    const stack: Parser.SyntaxNode[] = [tree.rootNode];
 
 
     while (stack.length > 0) {
-      const { node, indent } = stack.pop()!;
+      const node = stack.pop();
+      if (!node) {
+        continue;
+      }
 
       if (node.type === "function_declaration") {
-          const functionName = node.childForFieldName("name")?.text;
-          annotation += `// Function: ${functionName}\n`;
-      } else if (node.type === "class_declaration") {
-          const className = node.childForFieldName("name")?.text;
-          annotation += `// Class: ${className}\n`;
-      } else if (node.type === "variable_declaration") {
-          annotation += `// Variable declaration\n`;
+        const functionName = node.childForFieldName("name")?.text;
+        let functionParams = node.childForFieldName("parameters")?.text;
+
+        if (functionName && functionParams) {
+          let params = functionParams.split(",").map(param => param.split(":")[0]);
+          functionParams = params.join(", ");
+          if (functionParams.charAt(functionParams.length - 1) !== ")") {
+            functionParams += ")";
+          }
+          
+          const comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
+          edits.push({ pos: node.startIndex, text: comment });
+        }else {
+          console.error("Error: Function name or parameters not found.");
+        }
+      }else if(node.type === "if_statement") {
+        const condition = node.childForFieldName("condition")?.text;
+        if (condition) {
+          const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition) + "\n";
+          edits.push({ pos: node.startIndex, text: comment });
+        }else {
+          console.error("Error: If statement condition not found.");
+        }
+      }else if(node.type === "else_clause") {
+        const comment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
+        edits.push({ pos: node.startIndex, text: comment });
+      }else if(node.type === "for_statement") {
+        const iterator = node.childForFieldName("init")?.text;
+        const end = node.childForFieldName("end")?.text;
+        if (iterator && end) {
+          const comment = this.miniSLAnnotatorGenerator.getForStatement(iterator, end) + "\n";
+          edits.push({ pos: node.startIndex, text: comment });
+        }else {
+          console.error("Error: For statement iterator or end not found.");
+        }
       }
 
-      annotation += indent + this.code.substring(node.startIndex, node.endIndex) + "\n";
+      stack.push(...node.children.reverse());
+    }
 
-      // Add children in reverse order so they are processed correctly
-      for (let i = node.children.length - 1; i >= 0; i--) {
-          stack.push({ node: node.children[i], indent: indent + "  " });
-      }
-  }
+    // Apply edits in reverse order to avoid index shifting
+    edits.sort((a, b) => b.pos - a.pos);
+    let annotatedCode = this.code;
+    for (let edit of edits) {
+      annotatedCode = annotatedCode.slice(0, edit.pos) + edit.text + annotatedCode.slice(edit.pos);
+    }
 
-    return annotation;
+    return annotatedCode;
   }
 }
 
-
-const filePath = "input.ts";
-const annotator = new Annotator(filePath);
+const filePath = "./inputCode/input3.ts";
+const filePathConfig = "config.json";
+const annotator = new Annotator(filePath, filePathConfig);
 annotator.loadFile().then(() => {
-  console.log(annotator.getFileContent())
-}).catch((error) => {
+/*   console.log(annotator.getFileContent())
+ */}).catch((error) => {
   console.error('Error while loading the file:\n', error);
 });
 

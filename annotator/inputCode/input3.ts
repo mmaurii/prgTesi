@@ -1,67 +1,55 @@
 namespace input0 {
     type Job = any; // Sostituisci con un tipo specifico se conosci la struttura dei job
 
-    // miniSL: function map(jobs,  index)
-function map(jobs: Job[], index: number): void {
+    function map(jobs: Job[], index: number): void {
         console.log(`Mapping jobs for index ${index}`);
         // Implementa la logica della funzione di mappatura qui
     }
 
-    // miniSL: function reduce(jobs,  mapIndex,  reduceIndex)
-function reduce(jobs: Job[], mapIndex: number, reduceIndex: number): void {
+    function reduce(jobs: Job[], mapIndex: number, reduceIndex: number): void {
         console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
         // Implementa la logica della funzione di riduzione qui
     }
 
-    // miniSL: function PremiumService(param)
-function PremiumService(param: any): void {
+    function PremiumService(param: any): void {
         console.log(`Premium service called with param: ${param}`);
     }
 
-    // miniSL: function BasicService(param)
-function BasicService(param: any): void {
+    function BasicService(param: any): void {
         console.log(`Basic service called with param: ${param}`);
     }
 
-    // miniSL: function IsPremiumUser(username)
-function IsPremiumUser(username: string): boolean {
+    function IsPremiumUser(username: string): boolean {
         // Logica per determinare se l'utente è premium
         return username === 'premiumUser';
     }
 
-    // miniSL: function VipService(param)
-function VipService(param: any): void {
+    function VipService(param: any): void {
         console.log(`VIP service called with param: ${param}`);
     }
 
-    // miniSL: function calc()
-function calc(): number {
+    function calc(): number {
         return Math.random() * 1000;
     }
 
 
 
-    // miniSL: function calcolaStipendio(calcolaStipendioMensile,  flag)
-function calcolaStipendio(calcolaStipendioMensile: (calc: () => number) => number, flag: boolean): boolean {
+    function calcolaStipendio(calcolaStipendioMensile: (calc: () => number) => number, flag: boolean): boolean {
         let stp = calcolaStipendioMensile(calc);
-        // miniSL: if(flag)
-if (flag) {
+        if (flag) {
             stp = calcolaStipendioMensile(calc);
-        }// miniSL: else
- else {
+        } else {
             return calc() > 500;
         }
         console.log("Stipendio calcolato: " + stp);
         return true;
     }
 
-        // miniSL: function calcolaStipendioMensile(calc)
-function calcolaStipendioMensile(calc: () => number): number {
+        function calcolaStipendioMensile(calc: () => number): number {
             return calc();
         }
         
-    // miniSL: function main(jobs,  m,  r,  isVipUser,  param,  username)
-function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
+    function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
         for (let i = 0; i < m; i++) {
             map(jobs, i);
             for (let j = 0; j < r; j++) {
@@ -69,17 +57,13 @@ function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any,
             }
         }
 
-        // miniSL: if(isVipUser)
-if (isVipUser) {
-            // miniSL: if(IsPremiumUser(username))
-if (IsPremiumUser(username)) {
+        if (isVipUser) {
+            if (IsPremiumUser(username)) {
                 PremiumService(param);
-            }// miniSL: else
- else {
+            } else {
                 BasicService(param);
             }
-        }// miniSL: else
- else {
+        } else {
             VipService(param);
         }
 
