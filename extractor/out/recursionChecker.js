@@ -1,68 +1,73 @@
+"use strict";
 // This script checks for recursive functions in a call graph.
 // It uses a depth-first search (DFS) approach to detect cycles in the graph.
 // If a function calls itself directly or indirectly, it is considered recursive.
-export class CallGraph {
-    constructor() {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RecursionChecker = exports.CallGraph = void 0;
+var CallGraph = /** @class */ (function () {
+    function CallGraph() {
         this.graph = {};
     }
-    addFunction(name) {
+    CallGraph.prototype.addFunction = function (name) {
         if (!this.graph[name]) {
             this.graph[name] = new Set();
         }
-    }
-    addCall(from, to) {
+    };
+    CallGraph.prototype.addCall = function (from, to) {
         this.addFunction(from);
         this.addFunction(to);
         this.graph[from].add(to);
-    }
-    getCalls(functionName) {
+    };
+    CallGraph.prototype.getCalls = function (functionName) {
         return this.graph[functionName] || new Set();
-    }
-    print() {
-        let result = "Call Graph:\n";
-        for (const fn in this.graph) {
-            result += `${fn} -> ${Array.from(this.graph[fn]).join(", ")}\n`;
+    };
+    CallGraph.prototype.print = function () {
+        var result = "Call Graph:\n";
+        for (var fn in this.graph) {
+            result += "".concat(fn, " -> ").concat(Array.from(this.graph[fn]).join(", "), "\n");
         }
         return result;
-    }
-    getItem(key) {
+    };
+    CallGraph.prototype.getItem = function (key) {
         return this.graph[key] || new Set();
-    }
-}
-export class RecursionChecker {
-    constructor(annotations, config) {
+    };
+    return CallGraph;
+}());
+exports.CallGraph = CallGraph;
+var RecursionChecker = /** @class */ (function () {
+    function RecursionChecker(annotations, config) {
         this.config = config;
         this.annotations = annotations;
         this.callGraph = new CallGraph();
         this.buildCallGraph(); // Build the call graph from the annotations
     }
-    haveRecursiveFunction(functionName) {
-        const stack = [functionName];
-        const visited = new Set();
+    RecursionChecker.prototype.haveRecursiveFunction = function (functionName) {
+        var stack = [functionName];
+        var visited = new Set();
         while (stack.length > 0) {
-            const currentFunction = stack.pop();
+            var currentFunction = stack.pop();
             if (visited.has(currentFunction)) {
                 return true;
             }
             visited.add(currentFunction);
-            const calledFunctions = this.callGraph.getItem(currentFunction);
-            calledFunctions.forEach((calledFunction) => {
+            var calledFunctions = this.callGraph.getItem(currentFunction);
+            calledFunctions.forEach(function (calledFunction) {
                 stack.push(calledFunction);
             });
         }
         return false;
-    }
-    buildCallGraph() {
+    };
+    RecursionChecker.prototype.buildCallGraph = function () {
         //counters for the opened and closed statements '{ and }'
-        let indentLevel = [];
-        for (let i = 0; i < this.annotations.length; i++) {
+        var indentLevel = [];
+        for (var i = 0; i < this.annotations.length; i++) {
             //selecting the unspaced annotation controlStatements
-            const annotatedLine = this.annotations[i];
-            const miniSLComment = this.config.startAnnotation + " " + this.config.miniSLID + ":";
+            var annotatedLine = this.annotations[i];
+            var miniSLComment = this.config.startAnnotation + " " + this.config.miniSLID + ":";
             //selecting the annotation
-            let startIndex = annotatedLine.indexOf(miniSLComment) + miniSLComment.length;
-            let endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex) : annotatedLine.length;
-            let ann = annotatedLine.substring(startIndex, endIndex).trim();
+            var startIndex = annotatedLine.indexOf(miniSLComment) + miniSLComment.length;
+            var endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex) : annotatedLine.length;
+            var ann = annotatedLine.substring(startIndex, endIndex).trim();
             //start to identify the controlStatements type
             endIndex = ann.indexOf("(");
             if (endIndex === -1) {
@@ -77,7 +82,7 @@ export class RecursionChecker {
                 ann = ann.substring(0, startIndex - 1);
                 ann = ann.replace(/\s/g, "");
                 if (ann.startsWith(this.config.controlStatements.function)) {
-                    const fnName = ann.substring(this.config.controlStatements.function.length);
+                    var fnName = ann.substring(this.config.controlStatements.function.length);
                     indentLevel.push(fnName);
                     this.callGraph.addFunction(fnName);
                 }
@@ -86,7 +91,7 @@ export class RecursionChecker {
                     this.callGraph.addFunction("main");
                 }
                 else if (ann.startsWith(this.config.controlStatements.invoke)) {
-                    const fnName = ann.substring(this.config.controlStatements.invoke.length);
+                    var fnName = ann.substring(this.config.controlStatements.invoke.length);
                     this.callGraph.addCall(indentLevel[indentLevel.length - 1], fnName);
                 }
                 else if (ann === this.config.controlStatements.if || ann === this.config.controlStatements.for) {
@@ -95,9 +100,11 @@ export class RecursionChecker {
                 }
             }
         }
-    }
-    printCallGraph() {
+    };
+    RecursionChecker.prototype.printCallGraph = function () {
         console.log(this.callGraph.print());
-    }
-}
+    };
+    return RecursionChecker;
+}());
+exports.RecursionChecker = RecursionChecker;
 //# sourceMappingURL=recursionChecker.js.map

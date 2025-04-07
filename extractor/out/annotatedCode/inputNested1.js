@@ -1,7 +1,7 @@
 // miniSL: function calc05()
 function calc05() {
     // miniSL: invoke calc04()
-    let a = calc04() + 500;
+    var a = calc04() + 500;
     // miniSL: function calc04()
     function calc04() {
         // miniSL: invoke calc03()

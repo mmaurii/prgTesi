@@ -1,25 +1,25 @@
 var input1;
 (function (input1) {
     function map(jobs, index) {
-        console.log(`Mapping jobs for index ${index}`);
+        console.log("Mapping jobs for index ".concat(index));
         // Implementa la logica della funzione di mappatura qui
     }
     function reduce(jobs, mapIndex, reduceIndex) {
-        console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
+        console.log("Reducing jobs for mapIndex ".concat(mapIndex, " and reduceIndex ").concat(reduceIndex));
         // Implementa la logica della funzione di riduzione qui//
     }
     function PremiumService(param) {
-        console.log(`Premium service called with param: ${param}`);
+        console.log("Premium service called with param: ".concat(param));
     }
     function BasicService(param) {
-        console.log(`Basic service called with param: ${param}`);
+        console.log("Basic service called with param: ".concat(param));
     }
     function IsPremiumUser(username) {
         // Logica per determinare se l'utente è premium
         return username === 'premiumUser';
     }
     function VipService(param) {
-        console.log(`VIP service called with param: ${param}`);
+        console.log("VIP service called with param: ".concat(param));
     }
     // miniSL: function calcolaStipendioMensile(calc())//
     function calcolaStipendioMensile(mensilità) {
@@ -30,7 +30,7 @@ var input1;
     // miniSL: function calcolaStipendio(calcolaStipendioMensile(),ruolo)//
     function calcolaStipendio(calcolaStipendioMensile, ruolo) {
         // miniSL: call calcolaStipendioMensile(calc)//
-        let stp = calcolaStipendioMensile(12);
+        var stp = calcolaStipendioMensile(12);
         // miniSL: if(ruolo)//
         if (ruolo === "manager") {
             // miniSL: call calcolaStipendioMensile(calc)//
@@ -48,11 +48,11 @@ var input1;
     // miniSL: invoke main(jobs,m,r,isVipUser,username,param)//
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)//
-        for (let i = 0; i < m; i++) {
+        for (var i = 0; i < m; i++) {
             // miniSL: call map(jobs,i)//
             map(jobs, i);
             // miniSL: for(j,r)//
-            for (let j = 0; j < r; j++) {
+            for (var j = 0; j < r; j++) {
                 // miniSL: call reduce(jobs,i,j)//
                 reduce(jobs, i, j);
             }
@@ -91,12 +91,12 @@ var input1;
     }
     // miniSL: end//
     // Esempio di utilizzo
-    const jobs = ['Job1', 'Job2', 'Job3'];
-    const m = 3;
-    const r = 2;
-    const isPremiumUser = true;
-    const param = 'exampleParam';
-    const username = "user";
+    var jobs = ['Job1', 'Job2', 'Job3'];
+    var m = 3;
+    var r = 2;
+    var isPremiumUser = true;
+    var param = 'exampleParam';
+    var username = "user";
     main(jobs, m, r, isPremiumUser, param, username);
 })(input1 || (input1 = {}));
 //# sourceMappingURL=input1.js.map
