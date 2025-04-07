@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import * as antlr4 from 'antlr4';
-import testGrammarLexer from './testGrammar/testGrammarLexer.js';
-import testGrammarParser from './testGrammar/testGrammarParser.js';
+import testGrammarLexer from './miniSLGrammar/miniSLGrammarLexer.js';
+import testGrammarParser from './miniSLGrammar/miniSLGrammarParser.js';
 import * as fs from 'fs';
 function readFile(path) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -36,7 +36,7 @@ class Checker {
             let tokens = new antlr4.CommonTokenStream(lexer);
             let parser = new testGrammarParser(tokens);
             parser.buildParseTrees = true;
-            const tree = parser.chat(); // Change 'chat' to match your grammar's root rule
+            const tree = parser.prg(); // Change 'chat' to match your grammar's root rule
             // Simple annotation logic: wrap the text in brackets
             return `[${tree.getText()}]`;
         });

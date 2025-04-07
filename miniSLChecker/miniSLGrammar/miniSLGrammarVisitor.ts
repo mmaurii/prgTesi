@@ -6,15 +6,14 @@ import {ParseTreeVisitor} from 'antlr4';
 import { PrgContext } from "./miniSLGrammarParser.js";
 import { InitContext } from "./miniSLGrammarParser.js";
 import { ServiceDeclContext } from "./miniSLGrammarParser.js";
-import { FunctionDeclContext } from "./miniSLGrammarParser.js";
 import { StmContext } from "./miniSLGrammarParser.js";
 import { ServiceCallContext } from "./miniSLGrammarParser.js";
-import { FunctionCallContext } from "./miniSLGrammarParser.js";
 import { ExpOrCallContext } from "./miniSLGrammarParser.js";
 import { CallFunContext } from "./miniSLGrammarParser.js";
 import { BinExpContext } from "./miniSLGrammarParser.js";
 import { DerExpContext } from "./miniSLGrammarParser.js";
 import { ValExpContext } from "./miniSLGrammarParser.js";
+import { ParenExpContext } from "./miniSLGrammarParser.js";
 import { StringExpContext } from "./miniSLGrammarParser.js";
 import { FormalParamsContext } from "./miniSLGrammarParser.js";
 
@@ -46,12 +45,6 @@ export default class miniSLGrammarVisitor<Result> extends ParseTreeVisitor<Resul
 	 */
 	visitServiceDecl?: (ctx: ServiceDeclContext) => Result;
 	/**
-	 * Visit a parse tree produced by `miniSLGrammarParser.functionDecl`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitFunctionDecl?: (ctx: FunctionDeclContext) => Result;
-	/**
 	 * Visit a parse tree produced by `miniSLGrammarParser.stm`.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -63,12 +56,6 @@ export default class miniSLGrammarVisitor<Result> extends ParseTreeVisitor<Resul
 	 * @return the visitor result
 	 */
 	visitServiceCall?: (ctx: ServiceCallContext) => Result;
-	/**
-	 * Visit a parse tree produced by `miniSLGrammarParser.functionCall`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitFunctionCall?: (ctx: FunctionCallContext) => Result;
 	/**
 	 * Visit a parse tree produced by `miniSLGrammarParser.expOrCall`.
 	 * @param ctx the parse tree
@@ -103,6 +90,13 @@ export default class miniSLGrammarVisitor<Result> extends ParseTreeVisitor<Resul
 	 * @return the visitor result
 	 */
 	visitValExp?: (ctx: ValExpContext) => Result;
+	/**
+	 * Visit a parse tree produced by the `parenExp`
+	 * labeled alternative in `miniSLGrammarParser.exp`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitParenExp?: (ctx: ParenExpContext) => Result;
 	/**
 	 * Visit a parse tree produced by the `stringExp`
 	 * labeled alternative in `miniSLGrammarParser.exp`.

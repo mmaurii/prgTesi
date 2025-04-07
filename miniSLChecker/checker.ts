@@ -1,6 +1,6 @@
 import * as antlr4 from 'antlr4';
-import testGrammarLexer from './testGrammar/testGrammarLexer.js';
-import testGrammarParser from './testGrammar/testGrammarParser.js';
+import testGrammarLexer from './miniSLGrammar/miniSLGrammarLexer.js';
+import testGrammarParser from './miniSLGrammar/miniSLGrammarParser.js';
 import * as fs from 'fs';
 
 async function readFile(path: string): Promise<string> {
@@ -29,7 +29,7 @@ class Checker {
     let parser = new testGrammarParser(tokens);
     parser.buildParseTrees = true;
 
-    const tree = parser.chat(); // Change 'chat' to match your grammar's root rule
+    const tree = parser.prg(); // Change 'chat' to match your grammar's root rule
 
     // Simple annotation logic: wrap the text in brackets
     return `[${tree.getText()}]`;

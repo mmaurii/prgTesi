@@ -22,35 +22,21 @@ class miniSLGrammarParser extends Parser {
         try {
             this.enterOuterAlt(localctx, 1);
             {
-                this.state = 23;
+                this.state = 19;
                 this._errHandler.sync(this);
                 _la = this._input.LA(1);
                 while (_la === 6) {
                     {
                         {
-                            this.state = 20;
+                            this.state = 16;
                             this.serviceDecl();
                         }
                     }
-                    this.state = 25;
+                    this.state = 21;
                     this._errHandler.sync(this);
                     _la = this._input.LA(1);
                 }
-                this.state = 29;
-                this._errHandler.sync(this);
-                _la = this._input.LA(1);
-                while (_la === 11) {
-                    {
-                        {
-                            this.state = 26;
-                            this.functionDecl();
-                        }
-                    }
-                    this.state = 31;
-                    this._errHandler.sync(this);
-                    _la = this._input.LA(1);
-                }
-                this.state = 32;
+                this.state = 22;
                 this.init();
             }
         }
@@ -77,26 +63,26 @@ class miniSLGrammarParser extends Parser {
         try {
             this.enterOuterAlt(localctx, 1);
             {
-                this.state = 34;
+                this.state = 24;
                 this.match(miniSLGrammarParser.T__0);
-                this.state = 36;
+                this.state = 26;
                 this._errHandler.sync(this);
                 _la = this._input.LA(1);
-                if (_la === 30) {
+                if (_la === 31) {
                     {
-                        this.state = 35;
+                        this.state = 25;
                         this.formalParams();
                     }
                 }
-                this.state = 38;
+                this.state = 28;
                 this.match(miniSLGrammarParser.T__1);
-                this.state = 39;
+                this.state = 29;
                 this.match(miniSLGrammarParser.T__2);
-                this.state = 40;
+                this.state = 30;
                 this.match(miniSLGrammarParser.T__3);
-                this.state = 41;
+                this.state = 31;
                 this.stm();
-                this.state = 42;
+                this.state = 32;
                 this.match(miniSLGrammarParser.T__4);
             }
         }
@@ -122,72 +108,24 @@ class miniSLGrammarParser extends Parser {
         try {
             this.enterOuterAlt(localctx, 1);
             {
-                this.state = 44;
+                this.state = 34;
                 this.match(miniSLGrammarParser.T__5);
-                this.state = 45;
+                this.state = 35;
                 this.match(miniSLGrammarParser.ID);
-                this.state = 46;
+                this.state = 36;
                 this.match(miniSLGrammarParser.T__6);
-                this.state = 47;
+                this.state = 37;
                 this.match(miniSLGrammarParser.T__0);
-                this.state = 48;
+                this.state = 38;
                 this.match(miniSLGrammarParser.T__7);
-                this.state = 49;
+                this.state = 39;
                 this.match(miniSLGrammarParser.T__1);
-                this.state = 50;
+                this.state = 40;
                 this.match(miniSLGrammarParser.T__8);
-                this.state = 51;
+                this.state = 41;
                 this.match(miniSLGrammarParser.T__7);
-                this.state = 52;
+                this.state = 42;
                 this.match(miniSLGrammarParser.T__9);
-            }
-        }
-        catch (re) {
-            if (re instanceof RecognitionException) {
-                localctx.exception = re;
-                this._errHandler.reportError(this, re);
-                this._errHandler.recover(this, re);
-            }
-            else {
-                throw re;
-            }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localctx;
-    }
-    // @RuleVersion(0)
-    functionDecl() {
-        let localctx = new FunctionDeclContext(this, this._ctx, this.state);
-        this.enterRule(localctx, 6, miniSLGrammarParser.RULE_functionDecl);
-        let _la;
-        try {
-            this.enterOuterAlt(localctx, 1);
-            {
-                this.state = 54;
-                this.match(miniSLGrammarParser.T__10);
-                this.state = 55;
-                this.match(miniSLGrammarParser.ID);
-                this.state = 56;
-                this.match(miniSLGrammarParser.T__0);
-                this.state = 58;
-                this._errHandler.sync(this);
-                _la = this._input.LA(1);
-                if (_la === 30) {
-                    {
-                        this.state = 57;
-                        this.formalParams();
-                    }
-                }
-                this.state = 60;
-                this.match(miniSLGrammarParser.T__1);
-                this.state = 61;
-                this.match(miniSLGrammarParser.T__3);
-                this.state = 62;
-                this.stm();
-                this.state = 63;
-                this.match(miniSLGrammarParser.T__4);
             }
         }
         catch (re) {
@@ -208,27 +146,78 @@ class miniSLGrammarParser extends Parser {
     // @RuleVersion(0)
     stm() {
         let localctx = new StmContext(this, this._ctx, this.state);
-        this.enterRule(localctx, 8, miniSLGrammarParser.RULE_stm);
+        this.enterRule(localctx, 6, miniSLGrammarParser.RULE_stm);
+        let _la;
         try {
-            this.state = 93;
+            this.state = 76;
             this._errHandler.sync(this);
             switch (this._input.LA(1)) {
                 case 17:
                     this.enterOuterAlt(localctx, 1);
                     {
-                        this.state = 65;
+                        this.state = 44;
                         this.serviceCall();
                     }
                     break;
-                case 12:
+                case 11:
                     this.enterOuterAlt(localctx, 2);
                     {
-                        this.state = 66;
-                        this.match(miniSLGrammarParser.T__11);
-                        this.state = 67;
+                        this.state = 45;
+                        this.match(miniSLGrammarParser.T__10);
+                        this.state = 46;
                         this.match(miniSLGrammarParser.T__0);
-                        this.state = 68;
+                        this.state = 47;
                         this.expOrCall();
+                        this.state = 48;
+                        this.match(miniSLGrammarParser.T__1);
+                        this.state = 49;
+                        this.match(miniSLGrammarParser.T__3);
+                        this.state = 50;
+                        this.stm();
+                        this.state = 51;
+                        this.match(miniSLGrammarParser.T__4);
+                        this.state = 52;
+                        this.match(miniSLGrammarParser.T__11);
+                        this.state = 53;
+                        this.match(miniSLGrammarParser.T__3);
+                        this.state = 54;
+                        this.stm();
+                        this.state = 55;
+                        this.match(miniSLGrammarParser.T__4);
+                        this.state = 57;
+                        this._errHandler.sync(this);
+                        _la = this._input.LA(1);
+                        if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 141312) !== 0)) {
+                            {
+                                this.state = 56;
+                                this.stm();
+                            }
+                        }
+                    }
+                    break;
+                case 13:
+                    this.enterOuterAlt(localctx, 3);
+                    {
+                        this.state = 59;
+                        this.match(miniSLGrammarParser.T__12);
+                        this.state = 60;
+                        this.match(miniSLGrammarParser.T__0);
+                        this.state = 61;
+                        this.match(miniSLGrammarParser.ID);
+                        this.state = 62;
+                        this.match(miniSLGrammarParser.T__13);
+                        this.state = 63;
+                        this.match(miniSLGrammarParser.T__14);
+                        this.state = 64;
+                        this.match(miniSLGrammarParser.T__0);
+                        this.state = 65;
+                        this.match(miniSLGrammarParser.NUMBER);
+                        this.state = 66;
+                        this.match(miniSLGrammarParser.T__15);
+                        this.state = 67;
+                        this.exp(0);
+                        this.state = 68;
+                        this.match(miniSLGrammarParser.T__1);
                         this.state = 69;
                         this.match(miniSLGrammarParser.T__1);
                         this.state = 70;
@@ -237,52 +226,15 @@ class miniSLGrammarParser extends Parser {
                         this.stm();
                         this.state = 72;
                         this.match(miniSLGrammarParser.T__4);
-                        this.state = 73;
-                        this.match(miniSLGrammarParser.T__12);
                         this.state = 74;
-                        this.match(miniSLGrammarParser.T__3);
-                        this.state = 75;
-                        this.stm();
-                        this.state = 76;
-                        this.match(miniSLGrammarParser.T__4);
-                    }
-                    break;
-                case 14:
-                    this.enterOuterAlt(localctx, 3);
-                    {
-                        this.state = 78;
-                        this.match(miniSLGrammarParser.T__13);
-                        this.state = 79;
-                        this.match(miniSLGrammarParser.T__0);
-                        this.state = 80;
-                        this.match(miniSLGrammarParser.ID);
-                        this.state = 81;
-                        this.match(miniSLGrammarParser.T__14);
-                        this.state = 82;
-                        this.match(miniSLGrammarParser.T__0);
-                        this.state = 83;
-                        this.match(miniSLGrammarParser.NUMBER);
-                        this.state = 84;
-                        this.match(miniSLGrammarParser.T__15);
-                        this.state = 85;
-                        this.exp(0);
-                        this.state = 86;
-                        this.match(miniSLGrammarParser.T__1);
-                        this.state = 87;
-                        this.match(miniSLGrammarParser.T__1);
-                        this.state = 88;
-                        this.match(miniSLGrammarParser.T__3);
-                        this.state = 89;
-                        this.stm();
-                        this.state = 90;
-                        this.match(miniSLGrammarParser.T__4);
-                    }
-                    break;
-                case 30:
-                    this.enterOuterAlt(localctx, 4);
-                    {
-                        this.state = 92;
-                        this.functionCall();
+                        this._errHandler.sync(this);
+                        _la = this._input.LA(1);
+                        if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 141312) !== 0)) {
+                            {
+                                this.state = 73;
+                                this.stm();
+                            }
+                        }
                     }
                     break;
                 default:
@@ -307,50 +259,50 @@ class miniSLGrammarParser extends Parser {
     // @RuleVersion(0)
     serviceCall() {
         let localctx = new ServiceCallContext(this, this._ctx, this.state);
-        this.enterRule(localctx, 10, miniSLGrammarParser.RULE_serviceCall);
+        this.enterRule(localctx, 8, miniSLGrammarParser.RULE_serviceCall);
         let _la;
         try {
             this.enterOuterAlt(localctx, 1);
             {
-                this.state = 95;
+                this.state = 78;
                 this.match(miniSLGrammarParser.T__16);
-                this.state = 96;
+                this.state = 79;
                 this.match(miniSLGrammarParser.ID);
-                this.state = 97;
+                this.state = 80;
                 this.match(miniSLGrammarParser.T__0);
-                this.state = 106;
+                this.state = 89;
                 this._errHandler.sync(this);
                 _la = this._input.LA(1);
-                if (((((_la - 30)) & ~0x1F) === 0 && ((1 << (_la - 30)) & 7) !== 0)) {
+                if (_la === 1 || _la === 31 || _la === 32 || _la === 33) {
                     {
-                        this.state = 98;
+                        this.state = 81;
                         this.exp(0);
-                        this.state = 103;
+                        this.state = 86;
                         this._errHandler.sync(this);
                         _la = this._input.LA(1);
                         while (_la === 16) {
                             {
                                 {
-                                    this.state = 99;
+                                    this.state = 82;
                                     this.match(miniSLGrammarParser.T__15);
-                                    this.state = 100;
+                                    this.state = 83;
                                     this.exp(0);
                                 }
                             }
-                            this.state = 105;
+                            this.state = 88;
                             this._errHandler.sync(this);
                             _la = this._input.LA(1);
                         }
                     }
                 }
-                this.state = 108;
+                this.state = 91;
                 this.match(miniSLGrammarParser.T__1);
-                this.state = 110;
+                this.state = 93;
                 this._errHandler.sync(this);
                 _la = this._input.LA(1);
-                if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 1073893376) !== 0)) {
+                if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 141312) !== 0)) {
                     {
-                        this.state = 109;
+                        this.state = 92;
                         this.stm();
                     }
                 }
@@ -372,82 +324,27 @@ class miniSLGrammarParser extends Parser {
         return localctx;
     }
     // @RuleVersion(0)
-    functionCall() {
-        let localctx = new FunctionCallContext(this, this._ctx, this.state);
-        this.enterRule(localctx, 12, miniSLGrammarParser.RULE_functionCall);
-        let _la;
-        try {
-            this.enterOuterAlt(localctx, 1);
-            {
-                this.state = 112;
-                this.match(miniSLGrammarParser.ID);
-                this.state = 113;
-                this.match(miniSLGrammarParser.T__0);
-                this.state = 122;
-                this._errHandler.sync(this);
-                _la = this._input.LA(1);
-                if (((((_la - 30)) & ~0x1F) === 0 && ((1 << (_la - 30)) & 7) !== 0)) {
-                    {
-                        this.state = 114;
-                        this.exp(0);
-                        this.state = 119;
-                        this._errHandler.sync(this);
-                        _la = this._input.LA(1);
-                        while (_la === 16) {
-                            {
-                                {
-                                    this.state = 115;
-                                    this.match(miniSLGrammarParser.T__15);
-                                    this.state = 116;
-                                    this.exp(0);
-                                }
-                            }
-                            this.state = 121;
-                            this._errHandler.sync(this);
-                            _la = this._input.LA(1);
-                        }
-                    }
-                }
-                this.state = 124;
-                this.match(miniSLGrammarParser.T__1);
-            }
-        }
-        catch (re) {
-            if (re instanceof RecognitionException) {
-                localctx.exception = re;
-                this._errHandler.reportError(this, re);
-                this._errHandler.recover(this, re);
-            }
-            else {
-                throw re;
-            }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localctx;
-    }
-    // @RuleVersion(0)
     expOrCall() {
         let localctx = new ExpOrCallContext(this, this._ctx, this.state);
-        this.enterRule(localctx, 14, miniSLGrammarParser.RULE_expOrCall);
+        this.enterRule(localctx, 10, miniSLGrammarParser.RULE_expOrCall);
         try {
-            this.state = 128;
+            this.state = 97;
             this._errHandler.sync(this);
             switch (this._input.LA(1)) {
-                case 30:
+                case 1:
                 case 31:
                 case 32:
+                case 33:
                     this.enterOuterAlt(localctx, 1);
                     {
-                        this.state = 126;
+                        this.state = 95;
                         this.exp(0);
                     }
                     break;
                 case 17:
                     this.enterOuterAlt(localctx, 2);
                     {
-                        this.state = 127;
+                        this.state = 96;
                         this.serviceCall();
                     }
                     break;
@@ -479,61 +376,74 @@ class miniSLGrammarParser extends Parser {
         let _parentState = this.state;
         let localctx = new ExpContext(this, this._ctx, _parentState);
         let _prevctx = localctx;
-        let _startState = 16;
-        this.enterRecursionRule(localctx, 16, miniSLGrammarParser.RULE_exp, _p);
+        let _startState = 12;
+        this.enterRecursionRule(localctx, 12, miniSLGrammarParser.RULE_exp, _p);
         let _la;
         try {
             let _alt;
             this.enterOuterAlt(localctx, 1);
             {
-                this.state = 137;
+                this.state = 110;
                 this._errHandler.sync(this);
-                switch (this._interp.adaptivePredict(this._input, 11, this._ctx)) {
+                switch (this._interp.adaptivePredict(this._input, 9, this._ctx)) {
                     case 1:
                         {
-                            localctx = new CallFunContext(this, localctx);
+                            localctx = new ParenExpContext(this, localctx);
                             this._ctx = localctx;
                             _prevctx = localctx;
-                            this.state = 131;
-                            this.match(miniSLGrammarParser.ID);
-                            this.state = 132;
-                            this.match(miniSLGrammarParser.T__28);
-                            this.state = 133;
-                            this.match(miniSLGrammarParser.ID);
+                            this.state = 100;
+                            this.match(miniSLGrammarParser.T__0);
+                            this.state = 101;
+                            this.exp(0);
+                            this.state = 102;
+                            this.match(miniSLGrammarParser.T__1);
                         }
                         break;
                     case 2:
                         {
-                            localctx = new StringExpContext(this, localctx);
+                            localctx = new CallFunContext(this, localctx);
                             this._ctx = localctx;
                             _prevctx = localctx;
-                            this.state = 134;
-                            this.match(miniSLGrammarParser.STRING);
+                            this.state = 104;
+                            this.match(miniSLGrammarParser.ID);
+                            this.state = 105;
+                            this.match(miniSLGrammarParser.T__29);
+                            this.state = 106;
+                            this.match(miniSLGrammarParser.ID);
                         }
                         break;
                     case 3:
                         {
-                            localctx = new ValExpContext(this, localctx);
+                            localctx = new StringExpContext(this, localctx);
                             this._ctx = localctx;
                             _prevctx = localctx;
-                            this.state = 135;
-                            this.match(miniSLGrammarParser.NUMBER);
+                            this.state = 107;
+                            this.match(miniSLGrammarParser.STRING);
                         }
                         break;
                     case 4:
                         {
+                            localctx = new ValExpContext(this, localctx);
+                            this._ctx = localctx;
+                            _prevctx = localctx;
+                            this.state = 108;
+                            this.match(miniSLGrammarParser.NUMBER);
+                        }
+                        break;
+                    case 5:
+                        {
                             localctx = new DerExpContext(this, localctx);
                             this._ctx = localctx;
                             _prevctx = localctx;
-                            this.state = 136;
+                            this.state = 109;
                             this.match(miniSLGrammarParser.ID);
                         }
                         break;
                 }
                 this._ctx.stop = this._input.LT(-1);
-                this.state = 144;
+                this.state = 117;
                 this._errHandler.sync(this);
-                _alt = this._interp.adaptivePredict(this._input, 12, this._ctx);
+                _alt = this._interp.adaptivePredict(this._input, 10, this._ctx);
                 while (_alt !== 2 && _alt !== ATN.INVALID_ALT_NUMBER) {
                     if (_alt === 1) {
                         if (this._parseListeners != null) {
@@ -544,27 +454,27 @@ class miniSLGrammarParser extends Parser {
                             {
                                 localctx = new BinExpContext(this, new ExpContext(this, _parentctx, _parentState));
                                 this.pushNewRecursionContext(localctx, _startState, miniSLGrammarParser.RULE_exp);
-                                this.state = 139;
-                                if (!(this.precpred(this._ctx, 5))) {
-                                    throw this.createFailedPredicateException("this.precpred(this._ctx, 5)");
+                                this.state = 112;
+                                if (!(this.precpred(this._ctx, 6))) {
+                                    throw this.createFailedPredicateException("this.precpred(this._ctx, 6)");
                                 }
-                                this.state = 140;
+                                this.state = 113;
                                 _la = this._input.LA(1);
-                                if (!((((_la) & ~0x1F) === 0 && ((1 << _la) & 536608768) !== 0))) {
+                                if (!((((_la) & ~0x1F) === 0 && ((1 << _la) & 1073479680) !== 0))) {
                                     this._errHandler.recoverInline(this);
                                 }
                                 else {
                                     this._errHandler.reportMatch(this);
                                     this.consume();
                                 }
-                                this.state = 141;
-                                this.exp(6);
+                                this.state = 114;
+                                this.exp(7);
                             }
                         }
                     }
-                    this.state = 146;
+                    this.state = 119;
                     this._errHandler.sync(this);
-                    _alt = this._interp.adaptivePredict(this._input, 12, this._ctx);
+                    _alt = this._interp.adaptivePredict(this._input, 10, this._ctx);
                 }
             }
         }
@@ -586,26 +496,26 @@ class miniSLGrammarParser extends Parser {
     // @RuleVersion(0)
     formalParams() {
         let localctx = new FormalParamsContext(this, this._ctx, this.state);
-        this.enterRule(localctx, 18, miniSLGrammarParser.RULE_formalParams);
+        this.enterRule(localctx, 14, miniSLGrammarParser.RULE_formalParams);
         let _la;
         try {
             this.enterOuterAlt(localctx, 1);
             {
-                this.state = 147;
+                this.state = 120;
                 this.match(miniSLGrammarParser.ID);
-                this.state = 152;
+                this.state = 125;
                 this._errHandler.sync(this);
                 _la = this._input.LA(1);
                 while (_la === 16) {
                     {
                         {
-                            this.state = 148;
+                            this.state = 121;
                             this.match(miniSLGrammarParser.T__15);
-                            this.state = 149;
+                            this.state = 122;
                             this.match(miniSLGrammarParser.ID);
                         }
                     }
-                    this.state = 154;
+                    this.state = 127;
                     this._errHandler.sync(this);
                     _la = this._input.LA(1);
                 }
@@ -628,7 +538,7 @@ class miniSLGrammarParser extends Parser {
     }
     sempred(localctx, ruleIndex, predIndex) {
         switch (ruleIndex) {
-            case 8:
+            case 6:
                 return this.exp_sempred(localctx, predIndex);
         }
         return true;
@@ -636,7 +546,7 @@ class miniSLGrammarParser extends Parser {
     exp_sempred(localctx, predIndex) {
         switch (predIndex) {
             case 0:
-                return this.precpred(this._ctx, 5);
+                return this.precpred(this._ctx, 6);
         }
         return true;
     }
@@ -676,40 +586,39 @@ miniSLGrammarParser.T__25 = 26;
 miniSLGrammarParser.T__26 = 27;
 miniSLGrammarParser.T__27 = 28;
 miniSLGrammarParser.T__28 = 29;
-miniSLGrammarParser.ID = 30;
-miniSLGrammarParser.NUMBER = 31;
-miniSLGrammarParser.STRING = 32;
-miniSLGrammarParser.NEWLINE = 33;
-miniSLGrammarParser.LINECOMMENTS = 34;
-miniSLGrammarParser.WS = 35;
-miniSLGrammarParser.BLOCKCOMMENTS = 36;
+miniSLGrammarParser.T__29 = 30;
+miniSLGrammarParser.ID = 31;
+miniSLGrammarParser.NUMBER = 32;
+miniSLGrammarParser.STRING = 33;
+miniSLGrammarParser.NEWLINE = 34;
+miniSLGrammarParser.LINECOMMENTS = 35;
+miniSLGrammarParser.WS = 36;
+miniSLGrammarParser.BLOCKCOMMENTS = 37;
 miniSLGrammarParser.EOF = Token.EOF;
 miniSLGrammarParser.RULE_prg = 0;
 miniSLGrammarParser.RULE_init = 1;
 miniSLGrammarParser.RULE_serviceDecl = 2;
-miniSLGrammarParser.RULE_functionDecl = 3;
-miniSLGrammarParser.RULE_stm = 4;
-miniSLGrammarParser.RULE_serviceCall = 5;
-miniSLGrammarParser.RULE_functionCall = 6;
-miniSLGrammarParser.RULE_expOrCall = 7;
-miniSLGrammarParser.RULE_exp = 8;
-miniSLGrammarParser.RULE_formalParams = 9;
+miniSLGrammarParser.RULE_stm = 3;
+miniSLGrammarParser.RULE_serviceCall = 4;
+miniSLGrammarParser.RULE_expOrCall = 5;
+miniSLGrammarParser.RULE_exp = 6;
+miniSLGrammarParser.RULE_formalParams = 7;
 miniSLGrammarParser.literalNames = [null, "'('",
     "')'", "'=>'",
     "'{'", "'}'",
     "'service'",
     "':'", "'void'",
     "'->'", "';'",
-    "'fn'", "'if'",
-    "'else'", "'for'",
-    "'in'", "','",
+    "'if'", "'else'",
+    "'for'", "'in'",
+    "'range'", "','",
     "'call'", "'+'",
     "'-'", "'*'",
     "'/'", "'&&'",
-    "'=='", "'!='",
-    "'<'", "'<='",
-    "'>'", "'>='",
-    "'.'"];
+    "'||'", "'=='",
+    "'!='", "'<'",
+    "'<='", "'>'",
+    "'>='", "'.'"];
 miniSLGrammarParser.symbolicNames = [null, null,
     null, null,
     null, null,
@@ -725,62 +634,54 @@ miniSLGrammarParser.symbolicNames = [null, null,
     null, null,
     null, null,
     null, null,
-    "ID", "NUMBER",
-    "STRING", "NEWLINE",
+    null, "ID",
+    "NUMBER", "STRING",
+    "NEWLINE",
     "LINECOMMENTS",
     "WS", "BLOCKCOMMENTS"];
 // tslint:disable:no-trailing-whitespace
 miniSLGrammarParser.ruleNames = [
-    "prg", "init", "serviceDecl", "functionDecl", "stm", "serviceCall", "functionCall",
-    "expOrCall", "exp", "formalParams",
+    "prg", "init", "serviceDecl", "stm", "serviceCall", "expOrCall", "exp",
+    "formalParams",
 ];
-miniSLGrammarParser._serializedATN = [4, 1, 36, 156, 2, 0, 7, 0, 2,
-    1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7, 4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 1,
-    0, 5, 0, 22, 8, 0, 10, 0, 12, 0, 25, 9, 0, 1, 0, 5, 0, 28, 8, 0, 10, 0, 12, 0, 31, 9, 0, 1, 0, 1, 0, 1,
-    1, 1, 1, 3, 1, 37, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1,
-    2, 1, 2, 1, 2, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 59, 8, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 4, 1, 4, 1, 4, 1,
-    4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1,
-    4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 3, 4, 94, 8, 4, 1, 5, 1, 5, 1, 5, 1, 5, 1, 5, 1, 5, 5, 5, 102, 8,
-    5, 10, 5, 12, 5, 105, 9, 5, 3, 5, 107, 8, 5, 1, 5, 1, 5, 3, 5, 111, 8, 5, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6,
-    5, 6, 118, 8, 6, 10, 6, 12, 6, 121, 9, 6, 3, 6, 123, 8, 6, 1, 6, 1, 6, 1, 7, 1, 7, 3, 7, 129, 8, 7, 1,
-    8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 3, 8, 138, 8, 8, 1, 8, 1, 8, 1, 8, 5, 8, 143, 8, 8, 10, 8, 12, 8,
-    146, 9, 8, 1, 9, 1, 9, 1, 9, 5, 9, 151, 8, 9, 10, 9, 12, 9, 154, 9, 9, 1, 9, 0, 1, 16, 10, 0, 2, 4, 6,
-    8, 10, 12, 14, 16, 18, 0, 1, 1, 0, 18, 28, 163, 0, 23, 1, 0, 0, 0, 2, 34, 1, 0, 0, 0, 4, 44, 1, 0, 0,
-    0, 6, 54, 1, 0, 0, 0, 8, 93, 1, 0, 0, 0, 10, 95, 1, 0, 0, 0, 12, 112, 1, 0, 0, 0, 14, 128, 1, 0, 0, 0,
-    16, 137, 1, 0, 0, 0, 18, 147, 1, 0, 0, 0, 20, 22, 3, 4, 2, 0, 21, 20, 1, 0, 0, 0, 22, 25, 1, 0, 0, 0,
-    23, 21, 1, 0, 0, 0, 23, 24, 1, 0, 0, 0, 24, 29, 1, 0, 0, 0, 25, 23, 1, 0, 0, 0, 26, 28, 3, 6, 3, 0, 27,
-    26, 1, 0, 0, 0, 28, 31, 1, 0, 0, 0, 29, 27, 1, 0, 0, 0, 29, 30, 1, 0, 0, 0, 30, 32, 1, 0, 0, 0, 31, 29,
-    1, 0, 0, 0, 32, 33, 3, 2, 1, 0, 33, 1, 1, 0, 0, 0, 34, 36, 5, 1, 0, 0, 35, 37, 3, 18, 9, 0, 36, 35, 1,
-    0, 0, 0, 36, 37, 1, 0, 0, 0, 37, 38, 1, 0, 0, 0, 38, 39, 5, 2, 0, 0, 39, 40, 5, 3, 0, 0, 40, 41, 5, 4,
-    0, 0, 41, 42, 3, 8, 4, 0, 42, 43, 5, 5, 0, 0, 43, 3, 1, 0, 0, 0, 44, 45, 5, 6, 0, 0, 45, 46, 5, 30, 0,
-    0, 46, 47, 5, 7, 0, 0, 47, 48, 5, 1, 0, 0, 48, 49, 5, 8, 0, 0, 49, 50, 5, 2, 0, 0, 50, 51, 5, 9, 0, 0,
-    51, 52, 5, 8, 0, 0, 52, 53, 5, 10, 0, 0, 53, 5, 1, 0, 0, 0, 54, 55, 5, 11, 0, 0, 55, 56, 5, 30, 0, 0,
-    56, 58, 5, 1, 0, 0, 57, 59, 3, 18, 9, 0, 58, 57, 1, 0, 0, 0, 58, 59, 1, 0, 0, 0, 59, 60, 1, 0, 0, 0,
-    60, 61, 5, 2, 0, 0, 61, 62, 5, 4, 0, 0, 62, 63, 3, 8, 4, 0, 63, 64, 5, 5, 0, 0, 64, 7, 1, 0, 0, 0, 65,
-    94, 3, 10, 5, 0, 66, 67, 5, 12, 0, 0, 67, 68, 5, 1, 0, 0, 68, 69, 3, 14, 7, 0, 69, 70, 5, 2, 0, 0, 70,
-    71, 5, 4, 0, 0, 71, 72, 3, 8, 4, 0, 72, 73, 5, 5, 0, 0, 73, 74, 5, 13, 0, 0, 74, 75, 5, 4, 0, 0, 75,
-    76, 3, 8, 4, 0, 76, 77, 5, 5, 0, 0, 77, 94, 1, 0, 0, 0, 78, 79, 5, 14, 0, 0, 79, 80, 5, 1, 0, 0, 80,
-    81, 5, 30, 0, 0, 81, 82, 5, 15, 0, 0, 82, 83, 5, 1, 0, 0, 83, 84, 5, 31, 0, 0, 84, 85, 5, 16, 0, 0,
-    85, 86, 3, 16, 8, 0, 86, 87, 5, 2, 0, 0, 87, 88, 5, 2, 0, 0, 88, 89, 5, 4, 0, 0, 89, 90, 3, 8, 4, 0,
-    90, 91, 5, 5, 0, 0, 91, 94, 1, 0, 0, 0, 92, 94, 3, 12, 6, 0, 93, 65, 1, 0, 0, 0, 93, 66, 1, 0, 0, 0,
-    93, 78, 1, 0, 0, 0, 93, 92, 1, 0, 0, 0, 94, 9, 1, 0, 0, 0, 95, 96, 5, 17, 0, 0, 96, 97, 5, 30, 0, 0,
-    97, 106, 5, 1, 0, 0, 98, 103, 3, 16, 8, 0, 99, 100, 5, 16, 0, 0, 100, 102, 3, 16, 8, 0, 101, 99,
-    1, 0, 0, 0, 102, 105, 1, 0, 0, 0, 103, 101, 1, 0, 0, 0, 103, 104, 1, 0, 0, 0, 104, 107, 1, 0, 0, 0,
-    105, 103, 1, 0, 0, 0, 106, 98, 1, 0, 0, 0, 106, 107, 1, 0, 0, 0, 107, 108, 1, 0, 0, 0, 108, 110,
-    5, 2, 0, 0, 109, 111, 3, 8, 4, 0, 110, 109, 1, 0, 0, 0, 110, 111, 1, 0, 0, 0, 111, 11, 1, 0, 0, 0,
-    112, 113, 5, 30, 0, 0, 113, 122, 5, 1, 0, 0, 114, 119, 3, 16, 8, 0, 115, 116, 5, 16, 0, 0, 116,
-    118, 3, 16, 8, 0, 117, 115, 1, 0, 0, 0, 118, 121, 1, 0, 0, 0, 119, 117, 1, 0, 0, 0, 119, 120, 1,
-    0, 0, 0, 120, 123, 1, 0, 0, 0, 121, 119, 1, 0, 0, 0, 122, 114, 1, 0, 0, 0, 122, 123, 1, 0, 0, 0, 123,
-    124, 1, 0, 0, 0, 124, 125, 5, 2, 0, 0, 125, 13, 1, 0, 0, 0, 126, 129, 3, 16, 8, 0, 127, 129, 3, 10,
-    5, 0, 128, 126, 1, 0, 0, 0, 128, 127, 1, 0, 0, 0, 129, 15, 1, 0, 0, 0, 130, 131, 6, 8, -1, 0, 131,
-    132, 5, 30, 0, 0, 132, 133, 5, 29, 0, 0, 133, 138, 5, 30, 0, 0, 134, 138, 5, 32, 0, 0, 135, 138,
-    5, 31, 0, 0, 136, 138, 5, 30, 0, 0, 137, 130, 1, 0, 0, 0, 137, 134, 1, 0, 0, 0, 137, 135, 1, 0, 0,
-    0, 137, 136, 1, 0, 0, 0, 138, 144, 1, 0, 0, 0, 139, 140, 10, 5, 0, 0, 140, 141, 7, 0, 0, 0, 141,
-    143, 3, 16, 8, 6, 142, 139, 1, 0, 0, 0, 143, 146, 1, 0, 0, 0, 144, 142, 1, 0, 0, 0, 144, 145, 1,
-    0, 0, 0, 145, 17, 1, 0, 0, 0, 146, 144, 1, 0, 0, 0, 147, 152, 5, 30, 0, 0, 148, 149, 5, 16, 0, 0,
-    149, 151, 5, 30, 0, 0, 150, 148, 1, 0, 0, 0, 151, 154, 1, 0, 0, 0, 152, 150, 1, 0, 0, 0, 152, 153,
-    1, 0, 0, 0, 153, 19, 1, 0, 0, 0, 154, 152, 1, 0, 0, 0, 14, 23, 29, 36, 58, 93, 103, 106, 110, 119,
-    122, 128, 137, 144, 152];
+miniSLGrammarParser._serializedATN = [4, 1, 37, 129, 2, 0, 7, 0, 2,
+    1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7, 4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 1, 0, 5, 0, 18, 8, 0, 10,
+    0, 12, 0, 21, 9, 0, 1, 0, 1, 0, 1, 1, 1, 1, 3, 1, 27, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1,
+    2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1,
+    3, 1, 3, 1, 3, 1, 3, 3, 3, 58, 8, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1,
+    3, 1, 3, 1, 3, 1, 3, 3, 3, 75, 8, 3, 3, 3, 77, 8, 3, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 5, 4, 85, 8, 4,
+    10, 4, 12, 4, 88, 9, 4, 3, 4, 90, 8, 4, 1, 4, 1, 4, 3, 4, 94, 8, 4, 1, 5, 1, 5, 3, 5, 98, 8, 5, 1, 6, 1,
+    6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 3, 6, 111, 8, 6, 1, 6, 1, 6, 1, 6, 5, 6, 116, 8,
+    6, 10, 6, 12, 6, 119, 9, 6, 1, 7, 1, 7, 1, 7, 5, 7, 124, 8, 7, 10, 7, 12, 7, 127, 9, 7, 1, 7, 0, 1, 12,
+    8, 0, 2, 4, 6, 8, 10, 12, 14, 0, 1, 1, 0, 18, 29, 136, 0, 19, 1, 0, 0, 0, 2, 24, 1, 0, 0, 0, 4, 34, 1,
+    0, 0, 0, 6, 76, 1, 0, 0, 0, 8, 78, 1, 0, 0, 0, 10, 97, 1, 0, 0, 0, 12, 110, 1, 0, 0, 0, 14, 120, 1, 0,
+    0, 0, 16, 18, 3, 4, 2, 0, 17, 16, 1, 0, 0, 0, 18, 21, 1, 0, 0, 0, 19, 17, 1, 0, 0, 0, 19, 20, 1, 0, 0,
+    0, 20, 22, 1, 0, 0, 0, 21, 19, 1, 0, 0, 0, 22, 23, 3, 2, 1, 0, 23, 1, 1, 0, 0, 0, 24, 26, 5, 1, 0, 0,
+    25, 27, 3, 14, 7, 0, 26, 25, 1, 0, 0, 0, 26, 27, 1, 0, 0, 0, 27, 28, 1, 0, 0, 0, 28, 29, 5, 2, 0, 0,
+    29, 30, 5, 3, 0, 0, 30, 31, 5, 4, 0, 0, 31, 32, 3, 6, 3, 0, 32, 33, 5, 5, 0, 0, 33, 3, 1, 0, 0, 0, 34,
+    35, 5, 6, 0, 0, 35, 36, 5, 31, 0, 0, 36, 37, 5, 7, 0, 0, 37, 38, 5, 1, 0, 0, 38, 39, 5, 8, 0, 0, 39,
+    40, 5, 2, 0, 0, 40, 41, 5, 9, 0, 0, 41, 42, 5, 8, 0, 0, 42, 43, 5, 10, 0, 0, 43, 5, 1, 0, 0, 0, 44, 77,
+    3, 8, 4, 0, 45, 46, 5, 11, 0, 0, 46, 47, 5, 1, 0, 0, 47, 48, 3, 10, 5, 0, 48, 49, 5, 2, 0, 0, 49, 50,
+    5, 4, 0, 0, 50, 51, 3, 6, 3, 0, 51, 52, 5, 5, 0, 0, 52, 53, 5, 12, 0, 0, 53, 54, 5, 4, 0, 0, 54, 55,
+    3, 6, 3, 0, 55, 57, 5, 5, 0, 0, 56, 58, 3, 6, 3, 0, 57, 56, 1, 0, 0, 0, 57, 58, 1, 0, 0, 0, 58, 77, 1,
+    0, 0, 0, 59, 60, 5, 13, 0, 0, 60, 61, 5, 1, 0, 0, 61, 62, 5, 31, 0, 0, 62, 63, 5, 14, 0, 0, 63, 64,
+    5, 15, 0, 0, 64, 65, 5, 1, 0, 0, 65, 66, 5, 32, 0, 0, 66, 67, 5, 16, 0, 0, 67, 68, 3, 12, 6, 0, 68,
+    69, 5, 2, 0, 0, 69, 70, 5, 2, 0, 0, 70, 71, 5, 4, 0, 0, 71, 72, 3, 6, 3, 0, 72, 74, 5, 5, 0, 0, 73, 75,
+    3, 6, 3, 0, 74, 73, 1, 0, 0, 0, 74, 75, 1, 0, 0, 0, 75, 77, 1, 0, 0, 0, 76, 44, 1, 0, 0, 0, 76, 45, 1,
+    0, 0, 0, 76, 59, 1, 0, 0, 0, 77, 7, 1, 0, 0, 0, 78, 79, 5, 17, 0, 0, 79, 80, 5, 31, 0, 0, 80, 89, 5,
+    1, 0, 0, 81, 86, 3, 12, 6, 0, 82, 83, 5, 16, 0, 0, 83, 85, 3, 12, 6, 0, 84, 82, 1, 0, 0, 0, 85, 88,
+    1, 0, 0, 0, 86, 84, 1, 0, 0, 0, 86, 87, 1, 0, 0, 0, 87, 90, 1, 0, 0, 0, 88, 86, 1, 0, 0, 0, 89, 81, 1,
+    0, 0, 0, 89, 90, 1, 0, 0, 0, 90, 91, 1, 0, 0, 0, 91, 93, 5, 2, 0, 0, 92, 94, 3, 6, 3, 0, 93, 92, 1, 0,
+    0, 0, 93, 94, 1, 0, 0, 0, 94, 9, 1, 0, 0, 0, 95, 98, 3, 12, 6, 0, 96, 98, 3, 8, 4, 0, 97, 95, 1, 0, 0,
+    0, 97, 96, 1, 0, 0, 0, 98, 11, 1, 0, 0, 0, 99, 100, 6, 6, -1, 0, 100, 101, 5, 1, 0, 0, 101, 102, 3,
+    12, 6, 0, 102, 103, 5, 2, 0, 0, 103, 111, 1, 0, 0, 0, 104, 105, 5, 31, 0, 0, 105, 106, 5, 30, 0,
+    0, 106, 111, 5, 31, 0, 0, 107, 111, 5, 33, 0, 0, 108, 111, 5, 32, 0, 0, 109, 111, 5, 31, 0, 0, 110,
+    99, 1, 0, 0, 0, 110, 104, 1, 0, 0, 0, 110, 107, 1, 0, 0, 0, 110, 108, 1, 0, 0, 0, 110, 109, 1, 0,
+    0, 0, 111, 117, 1, 0, 0, 0, 112, 113, 10, 6, 0, 0, 113, 114, 7, 0, 0, 0, 114, 116, 3, 12, 6, 7, 115,
+    112, 1, 0, 0, 0, 116, 119, 1, 0, 0, 0, 117, 115, 1, 0, 0, 0, 117, 118, 1, 0, 0, 0, 118, 13, 1, 0,
+    0, 0, 119, 117, 1, 0, 0, 0, 120, 125, 5, 31, 0, 0, 121, 122, 5, 16, 0, 0, 122, 124, 5, 31, 0, 0,
+    123, 121, 1, 0, 0, 0, 124, 127, 1, 0, 0, 0, 125, 123, 1, 0, 0, 0, 125, 126, 1, 0, 0, 0, 126, 15,
+    1, 0, 0, 0, 127, 125, 1, 0, 0, 0, 12, 19, 26, 57, 74, 76, 86, 89, 93, 97, 110, 117, 125];
 miniSLGrammarParser.DecisionsToDFA = miniSLGrammarParser._ATN.decisionToState.map((ds, index) => new DFA(ds, index));
 export default miniSLGrammarParser;
 export class PrgContext extends ParserRuleContext {
@@ -796,12 +697,6 @@ export class PrgContext extends ParserRuleContext {
     }
     serviceDecl(i) {
         return this.getTypedRuleContext(ServiceDeclContext, i);
-    }
-    functionDecl_list() {
-        return this.getTypedRuleContexts(FunctionDeclContext);
-    }
-    functionDecl(i) {
-        return this.getTypedRuleContext(FunctionDeclContext, i);
     }
     get ruleIndex() {
         return miniSLGrammarParser.RULE_prg;
@@ -891,43 +786,6 @@ export class ServiceDeclContext extends ParserRuleContext {
         }
     }
 }
-export class FunctionDeclContext extends ParserRuleContext {
-    constructor(parser, parent, invokingState) {
-        super(parent, invokingState);
-        this.parser = parser;
-    }
-    ID() {
-        return this.getToken(miniSLGrammarParser.ID, 0);
-    }
-    stm() {
-        return this.getTypedRuleContext(StmContext, 0);
-    }
-    formalParams() {
-        return this.getTypedRuleContext(FormalParamsContext, 0);
-    }
-    get ruleIndex() {
-        return miniSLGrammarParser.RULE_functionDecl;
-    }
-    enterRule(listener) {
-        if (listener.enterFunctionDecl) {
-            listener.enterFunctionDecl(this);
-        }
-    }
-    exitRule(listener) {
-        if (listener.exitFunctionDecl) {
-            listener.exitFunctionDecl(this);
-        }
-    }
-    // @Override
-    accept(visitor) {
-        if (visitor.visitFunctionDecl) {
-            return visitor.visitFunctionDecl(this);
-        }
-        else {
-            return visitor.visitChildren(this);
-        }
-    }
-}
 export class StmContext extends ParserRuleContext {
     constructor(parser, parent, invokingState) {
         super(parent, invokingState);
@@ -953,9 +811,6 @@ export class StmContext extends ParserRuleContext {
     }
     exp() {
         return this.getTypedRuleContext(ExpContext, 0);
-    }
-    functionCall() {
-        return this.getTypedRuleContext(FunctionCallContext, 0);
     }
     get ruleIndex() {
         return miniSLGrammarParser.RULE_stm;
@@ -1014,43 +869,6 @@ export class ServiceCallContext extends ParserRuleContext {
     accept(visitor) {
         if (visitor.visitServiceCall) {
             return visitor.visitServiceCall(this);
-        }
-        else {
-            return visitor.visitChildren(this);
-        }
-    }
-}
-export class FunctionCallContext extends ParserRuleContext {
-    constructor(parser, parent, invokingState) {
-        super(parent, invokingState);
-        this.parser = parser;
-    }
-    ID() {
-        return this.getToken(miniSLGrammarParser.ID, 0);
-    }
-    exp_list() {
-        return this.getTypedRuleContexts(ExpContext);
-    }
-    exp(i) {
-        return this.getTypedRuleContext(ExpContext, i);
-    }
-    get ruleIndex() {
-        return miniSLGrammarParser.RULE_functionCall;
-    }
-    enterRule(listener) {
-        if (listener.enterFunctionCall) {
-            listener.enterFunctionCall(this);
-        }
-    }
-    exitRule(listener) {
-        if (listener.exitFunctionCall) {
-            listener.exitFunctionCall(this);
-        }
-    }
-    // @Override
-    accept(visitor) {
-        if (visitor.visitFunctionCall) {
-            return visitor.visitFunctionCall(this);
         }
         else {
             return visitor.visitChildren(this);
@@ -1215,6 +1033,34 @@ export class ValExpContext extends ExpContext {
     accept(visitor) {
         if (visitor.visitValExp) {
             return visitor.visitValExp(this);
+        }
+        else {
+            return visitor.visitChildren(this);
+        }
+    }
+}
+export class ParenExpContext extends ExpContext {
+    constructor(parser, ctx) {
+        super(parser, ctx.parentCtx, ctx.invokingState);
+        super.copyFrom(ctx);
+    }
+    exp() {
+        return this.getTypedRuleContext(ExpContext, 0);
+    }
+    enterRule(listener) {
+        if (listener.enterParenExp) {
+            listener.enterParenExp(this);
+        }
+    }
+    exitRule(listener) {
+        if (listener.exitParenExp) {
+            listener.exitParenExp(this);
+        }
+    }
+    // @Override
+    accept(visitor) {
+        if (visitor.visitParenExp) {
+            return visitor.visitParenExp(this);
         }
         else {
             return visitor.visitChildren(this);

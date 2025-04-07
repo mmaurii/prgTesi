@@ -4,26 +4,22 @@ grammar miniSLGrammar;
  * Parser Rules
  */
 
-prg: serviceDecl* functionDecl* init;
+prg: serviceDecl* init;
 
 init: '(' formalParams? ')' '=>' '{' stm '}';
 
 serviceDecl: 'service' ID ':' '(' 'void' ')' '->' 'void' ';';
 
-functionDecl: 'fn' ID '(' formalParams? ')' '{' stm '}';
-
 stm: serviceCall
-   | 'if' '(' expOrCall ')' '{' stm '}' 'else' '{' stm '}'
-   | 'for' '(' ID 'in' '(' NUMBER ',' exp ')' ')' '{' stm '}'
-   | functionCall;
+   | 'if' '(' expOrCall ')' '{' stm '}' 'else' '{' stm '}' stm?
+   | 'for' '(' ID 'in' 'range' '(' NUMBER ',' exp ')' ')' '{' stm '}' stm?;
 
 serviceCall: 'call' ID '(' (exp (',' exp)*)? ')' stm?;
 
-functionCall: ID '(' (exp (',' exp)*)? ')';
-
 expOrCall: exp | serviceCall;
 
-exp: exp ('+' | '-' | '*' | '/' | '&&' | '==' | '!=' | '<' | '<=' | '>' | '>=') exp # binExp
+exp: exp ('+' | '-' | '*' | '/' | '&&' | '||' | '==' | '!=' | '<' | '<=' | '>' | '>=') exp # binExp
+   | '(' exp ')' # parenExp
    | ID '.' ID # callFun
    | STRING # stringExp
    | NUMBER # valExp

@@ -6,15 +6,14 @@ import {ParseTreeListener} from "antlr4";
 import { PrgContext } from "./miniSLGrammarParser.js";
 import { InitContext } from "./miniSLGrammarParser.js";
 import { ServiceDeclContext } from "./miniSLGrammarParser.js";
-import { FunctionDeclContext } from "./miniSLGrammarParser.js";
 import { StmContext } from "./miniSLGrammarParser.js";
 import { ServiceCallContext } from "./miniSLGrammarParser.js";
-import { FunctionCallContext } from "./miniSLGrammarParser.js";
 import { ExpOrCallContext } from "./miniSLGrammarParser.js";
 import { CallFunContext } from "./miniSLGrammarParser.js";
 import { BinExpContext } from "./miniSLGrammarParser.js";
 import { DerExpContext } from "./miniSLGrammarParser.js";
 import { ValExpContext } from "./miniSLGrammarParser.js";
+import { ParenExpContext } from "./miniSLGrammarParser.js";
 import { StringExpContext } from "./miniSLGrammarParser.js";
 import { FormalParamsContext } from "./miniSLGrammarParser.js";
 
@@ -55,16 +54,6 @@ export default class miniSLGrammarListener extends ParseTreeListener {
 	 */
 	exitServiceDecl?: (ctx: ServiceDeclContext) => void;
 	/**
-	 * Enter a parse tree produced by `miniSLGrammarParser.functionDecl`.
-	 * @param ctx the parse tree
-	 */
-	enterFunctionDecl?: (ctx: FunctionDeclContext) => void;
-	/**
-	 * Exit a parse tree produced by `miniSLGrammarParser.functionDecl`.
-	 * @param ctx the parse tree
-	 */
-	exitFunctionDecl?: (ctx: FunctionDeclContext) => void;
-	/**
 	 * Enter a parse tree produced by `miniSLGrammarParser.stm`.
 	 * @param ctx the parse tree
 	 */
@@ -84,16 +73,6 @@ export default class miniSLGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitServiceCall?: (ctx: ServiceCallContext) => void;
-	/**
-	 * Enter a parse tree produced by `miniSLGrammarParser.functionCall`.
-	 * @param ctx the parse tree
-	 */
-	enterFunctionCall?: (ctx: FunctionCallContext) => void;
-	/**
-	 * Exit a parse tree produced by `miniSLGrammarParser.functionCall`.
-	 * @param ctx the parse tree
-	 */
-	exitFunctionCall?: (ctx: FunctionCallContext) => void;
 	/**
 	 * Enter a parse tree produced by `miniSLGrammarParser.expOrCall`.
 	 * @param ctx the parse tree
@@ -152,6 +131,18 @@ export default class miniSLGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitValExp?: (ctx: ValExpContext) => void;
+	/**
+	 * Enter a parse tree produced by the `parenExp`
+	 * labeled alternative in `miniSLGrammarParser.exp`.
+	 * @param ctx the parse tree
+	 */
+	enterParenExp?: (ctx: ParenExpContext) => void;
+	/**
+	 * Exit a parse tree produced by the `parenExp`
+	 * labeled alternative in `miniSLGrammarParser.exp`.
+	 * @param ctx the parse tree
+	 */
+	exitParenExp?: (ctx: ParenExpContext) => void;
 	/**
 	 * Enter a parse tree produced by the `stringExp`
 	 * labeled alternative in `miniSLGrammarParser.exp`.
