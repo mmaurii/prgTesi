@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as acorn from "acorn";
 import { exit } from 'process';
 import { RecursionChecker } from './recursionChecker.js';
+import { miniSLParser } from './miniSLParser.js';
+
 //import { Config } from './config.js';
 
 async function readFile(path: string): Promise<string> {
@@ -59,6 +61,9 @@ class Extractor {
 
             //indenting code
             let indentedCode = this.indentMiniSLCode(miniSLCode);
+            
+            const annotator = new miniSLParser(indentedCode);
+            annotator.check();          
 
             console.log(indentedCode);
         } catch (error) {
