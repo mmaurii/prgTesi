@@ -45,14 +45,14 @@ class Annotator {
     }
     annotate() {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             if (!this.code) {
                 yield this.loadFile();
             }
             // Parse the code
             const tree = this.parser.parse(this.code);
             /*     console.log("AST:\n");
-                console.log(rootNode.toString());
+                console.log(tree.rootNode.toString());
              */ let indent = "";
             let annotation = "";
             const edits = [];
@@ -93,26 +93,152 @@ class Annotator {
                     edits.push({ pos: node.startIndex, text: comment });
                 }
                 else if (node.type === "for_statement") {
-                    const iterator = (_d = node.childForFieldName("init")) === null || _d === void 0 ? void 0 : _d.text;
-                    const end = (_e = node.childForFieldName("end")) === null || _e === void 0 ? void 0 : _e.text;
-                    if (iterator && end) {
-                        const comment = this.miniSLAnnotatorGenerator.getForStatement(iterator, end) + "\n";
+                    // For statement: get the initializer and condition
+                    // For example: for (initializer; condition; update) { body }
+                    const initializer = node.childForFieldName("initializer");
+                    const condition = node.childForFieldName("condition");
+                    const startIndex = this.getForStartIndex(initializer);
+                    const endIndex = this.getForEndIndex(condition);
+                    if (startIndex && endIndex) {
+                        const comment = this.miniSLAnnotatorGenerator.getForStatement(startIndex, endIndex) + "\n";
                         edits.push({ pos: node.startIndex, text: comment });
                     }
                     else {
                         console.error("Error: For statement iterator or end not found.");
                     }
+                    //controllo che la call non sia dentro un if
+                }
+                else if (node.type === "call_expression" && ((_e = (_d = node.parent) === null || _d === void 0 ? void 0 : _d.parent) === null || _e === void 0 ? void 0 : _e.type) !== "if_statement") {
+                    // Check if the function is a service call
+                    const nodeParent = node.parent;
+                    const nodeParentIndex = this.getIndexInParent(nodeParent);
+                    const comment = (_h = (_g = (_f = node.parent) === null || _f === void 0 ? void 0 : _f.parent) === null || _g === void 0 ? void 0 : _g.child(nodeParentIndex - 1)) === null || _h === void 0 ? void 0 : _h.text;
+                    if (comment) {
+                        if (!comment.includes("miniSL:")) {
+                            const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                            edits.push({ pos: node.startIndex, text: comment });
+                        }
+                    }
+                    else {
+                        const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                        edits.push({ pos: node.startIndex, text: comment });
+                    }
+                    //controllo che ci sia la chiusura di un un blocco
+                }
+                else if (node.type === '}' && ((_j = node.parent) === null || _j === void 0 ? void 0 : _j.type) === 'statement_block') {
+                    const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1] : undefined;
+                    //controllo che non sia un else, '} else {'
+                    if ((nextNode === null || nextNode === void 0 ? void 0 : nextNode.type) !== 'else_clause') {
+                        const comment = this.miniSLAnnotatorGenerator.getEndStatement() + "\n";
+                        edits.push({ pos: node.startIndex, text: comment });
+                    }
                 }
                 stack.push(...node.children.reverse());
             }
             // Apply edits in reverse order to avoid index shifting
+            //    edits.sort((a, b) => a.pos - b.pos);
             edits.sort((a, b) => b.pos - a.pos);
             let annotatedCode = this.code;
             for (let edit of edits) {
                 annotatedCode = annotatedCode.slice(0, edit.pos) + edit.text + annotatedCode.slice(edit.pos);
             }
+            // print tree
+            console.log(this.printSyntaxTree(tree.rootNode, this.code));
+            //return edits.map(edit => edit.text).join("");
             return annotatedCode;
         });
+    }
+    getIndexInParent(node) {
+        const parent = node.parent;
+        if (!parent)
+            return -1;
+        for (let i = 0; i < parent.childCount; i++) {
+            const child = parent.child(i);
+            if (child === node) {
+                return i;
+            }
+        }
+        return -1; // non trovato
+    }
+    check(node) {
+        var _a;
+        return ((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === 'statement_block';
+    }
+    getForEndIndex(condition) {
+        if (condition) {
+            let valueNode;
+            if (condition.type === "binary_expression") {
+                valueNode = condition.child(2); // RHS of binary expression
+            }
+            else {
+                throw new Error("Error: For statement condition is not a binary expression, i can't handle it.");
+            }
+            if (!this.isFunctionCall(valueNode)) {
+                return valueNode.text;
+            }
+            else {
+                throw new Error("Error: endIndex in For statement is a function call.");
+            }
+        }
+        throw new Error("Error: condition in For statement not found.");
+    }
+    getForStartIndex(initializer) {
+        if (initializer) {
+            let valueNode;
+            if (initializer.type === "lexical_declaration" || initializer.type === "variable_declaration") {
+                const declarator = initializer.namedChild(0);
+                valueNode = declarator === null || declarator === void 0 ? void 0 : declarator.childForFieldName("value");
+            }
+            else if (initializer.type === "assignment_expression") {
+                valueNode = initializer.child(2); // RHS of assignment
+            }
+            if (!this.isFunctionCall(valueNode)) {
+                return valueNode.text;
+            }
+            else {
+                throw new Error("Error: startIndex in For statement is a function call.");
+            }
+        }
+        throw new Error("Error: initializer in For statement not found.");
+    }
+    isFunctionCall(node) {
+        if (!node)
+            return false;
+        // Caso base: è una call
+        if (node.type === "call_expression")
+            return true;
+        // Caso annidato: x = a + myFunc()
+        for (let i = 0; i < node.namedChildCount; i++) {
+            if (this.isFunctionCall(node.namedChild(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    getRowPos(node) {
+        if (!node)
+            throw new Error("Error: node is null or undefined.");
+        const startPosition = node.startPosition;
+        return startPosition.row; // +1 to convert from 0-based to 1-based index
+    }
+    printSyntaxTree(node, sourceCode, indent = '', isLast = true) {
+        const connector = isLast ? '└── ' : '├── ';
+        let result = indent + connector + node.type;
+        // Add node text for identifiers or literals
+        if (node.type === 'identifier' || node.type === 'string' || node.type === 'number') {
+            const text = sourceCode.slice(node.startIndex, node.endIndex);
+            result += ` (${text})`;
+        }
+        result += '\n';
+        const children = [];
+        for (let i = 0; i < node.childCount; i++) {
+            children.push(node.child(i));
+        }
+        const newIndent = indent + (isLast ? '    ' : '│   ');
+        for (let i = 0; i < children.length; i++) {
+            result += this.printSyntaxTree(children[i], sourceCode, newIndent, i === children.length - 1);
+        }
+        return result;
     }
 }
 const filePath = "./inputCode/input3.ts";
@@ -125,8 +251,8 @@ annotator.loadFile().then(() => {
     console.error('Error while loading the file:\n', error);
 });
 annotator.annotate().then((data) => {
-    console.log("Annotation completed.");
-    console.log(data);
+    /*   console.log("Annotation completed.");
+      console.log(data); */
     fs.writeFileSync("output.txt", data, 'utf-8');
 }).catch((error) => {
     console.error('Error while annotating the file:\n', error);

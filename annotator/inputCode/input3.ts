@@ -3,12 +3,10 @@ namespace input0 {
 
     function map(jobs: Job[], index: number): void {
         console.log(`Mapping jobs for index ${index}`);
-        // Implementa la logica della funzione di mappatura qui
     }
 
     function reduce(jobs: Job[], mapIndex: number, reduceIndex: number): void {
         console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
-        // Implementa la logica della funzione di riduzione qui
     }
 
     function PremiumService(param: any): void {
@@ -20,7 +18,6 @@ namespace input0 {
     }
 
     function IsPremiumUser(username: string): boolean {
-        // Logica per determinare se l'utente è premium
         return username === 'premiumUser';
     }
 
@@ -53,6 +50,7 @@ namespace input0 {
         for (let i = 0; i < m; i++) {
             map(jobs, i);
             for (let j = 0; j < r; j++) {
+                // miniSL: call(jobs, i, j)
                 reduce(jobs, i, j);
             }
         }

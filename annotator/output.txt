@@ -3,88 +3,119 @@ namespace input0 {
 
     // miniSL: function map(jobs,  index)
 function map(jobs: Job[], index: number): void {
-        console.log(`Mapping jobs for index ${index}`);
-        // Implementa la logica della funzione di mappatura qui
-    }
+        // miniSL: invoke console.log(`Mapping jobs for index ${index}`)
+console.log(`Mapping jobs for index ${index}`);
+    // miniSL: end
+}
 
     // miniSL: function reduce(jobs,  mapIndex,  reduceIndex)
 function reduce(jobs: Job[], mapIndex: number, reduceIndex: number): void {
-        console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
-        // Implementa la logica della funzione di riduzione qui
-    }
+        // miniSL: invoke console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`)
+console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
+    // miniSL: end
+}
 
     // miniSL: function PremiumService(param)
 function PremiumService(param: any): void {
-        console.log(`Premium service called with param: ${param}`);
-    }
+        // miniSL: invoke console.log(`Premium service called with param: ${param}`)
+console.log(`Premium service called with param: ${param}`);
+    // miniSL: end
+}
 
     // miniSL: function BasicService(param)
 function BasicService(param: any): void {
-        console.log(`Basic service called with param: ${param}`);
-    }
+        // miniSL: invoke console.log(`Basic service called with param: ${param}`)
+console.log(`Basic service called with param: ${param}`);
+    // miniSL: end
+}
 
     // miniSL: function IsPremiumUser(username)
 function IsPremiumUser(username: string): boolean {
-        // Logica per determinare se l'utente è premium
         return username === 'premiumUser';
-    }
+    // miniSL: end
+}
 
     // miniSL: function VipService(param)
 function VipService(param: any): void {
-        console.log(`VIP service called with param: ${param}`);
-    }
+        // miniSL: invoke console.log(`VIP service called with param: ${param}`)
+console.log(`VIP service called with param: ${param}`);
+    // miniSL: end
+}
 
     // miniSL: function calc()
 function calc(): number {
-        return Math.random() * 1000;
-    }
+        return // miniSL: invoke Math.random()
+Math.random() * 1000;
+    // miniSL: end
+}
 
 
 
     // miniSL: function calcolaStipendio(calcolaStipendioMensile,  flag)
 function calcolaStipendio(calcolaStipendioMensile: (calc: () => number) => number, flag: boolean): boolean {
-        let stp = calcolaStipendioMensile(calc);
+        let stp = // miniSL: invoke calcolaStipendioMensile(calc)
+calcolaStipendioMensile(calc);
         // miniSL: if(flag)
 if (flag) {
-            stp = calcolaStipendioMensile(calc);
-        }// miniSL: else
- else {
-            return calc() > 500;
-        }
-        console.log("Stipendio calcolato: " + stp);
+            stp = // miniSL: invoke calcolaStipendioMensile(calc)
+calcolaStipendioMensile(calc);
+        } // miniSL: else
+else {
+            return // miniSL: invoke calc()
+calc() > 500;
+        // miniSL: end
+}
+        // miniSL: invoke console.log("Stipendio calcolato: " + stp)
+console.log("Stipendio calcolato: " + stp);
         return true;
-    }
+    // miniSL: end
+}
 
         // miniSL: function calcolaStipendioMensile(calc)
 function calcolaStipendioMensile(calc: () => number): number {
-            return calc();
-        }
+            return // miniSL: invoke calc()
+calc();
+        // miniSL: end
+}
         
     // miniSL: function main(jobs,  m,  r,  isVipUser,  param,  username)
 function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
-        for (let i = 0; i < m; i++) {
-            map(jobs, i);
-            for (let j = 0; j < r; j++) {
+        // miniSL: for(0, m)
+for (let i = 0; i < m; i++) {
+            // miniSL: invoke map(jobs, i)
+map(jobs, i);
+            // miniSL: for(0, r)
+for (let j = 0; j < r; j++) {
+                // miniSL: call(jobs, i, j)
                 reduce(jobs, i, j);
-            }
-        }
+            // miniSL: end
+}
+        // miniSL: end
+}
 
         // miniSL: if(isVipUser)
 if (isVipUser) {
             // miniSL: if(IsPremiumUser(username))
 if (IsPremiumUser(username)) {
-                PremiumService(param);
-            }// miniSL: else
- else {
-                BasicService(param);
-            }
-        }// miniSL: else
- else {
-            VipService(param);
-        }
+                // miniSL: invoke PremiumService(param)
+PremiumService(param);
+            } // miniSL: else
+else {
+                // miniSL: invoke BasicService(param)
+BasicService(param);
+            // miniSL: end
+}
+        } // miniSL: else
+else {
+            // miniSL: invoke VipService(param)
+VipService(param);
+        // miniSL: end
+}
 
-        calcolaStipendio(calcolaStipendioMensile, true);
-    }
+        // miniSL: invoke calcolaStipendio(calcolaStipendioMensile, true)
+calcolaStipendio(calcolaStipendioMensile, true);
+    // miniSL: end
+}
 
     // Esempio di utilizzo
     const jobs: Job[] = ['Job1', 'Job2', 'Job3'];
@@ -94,5 +125,7 @@ if (IsPremiumUser(username)) {
     const param = 'exampleParam';
     const username = "user";
 
-    main(jobs, m, r, isPremiumUser, param, username);
+    // miniSL: invoke main(jobs, m, r, isPremiumUser, param, username)
+main(jobs, m, r, isPremiumUser, param, username);
+// miniSL: end
 }

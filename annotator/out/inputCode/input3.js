@@ -2,11 +2,9 @@ var input0;
 (function (input0) {
     function map(jobs, index) {
         console.log(`Mapping jobs for index ${index}`);
-        // Implementa la logica della funzione di mappatura qui
     }
     function reduce(jobs, mapIndex, reduceIndex) {
         console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
-        // Implementa la logica della funzione di riduzione qui
     }
     function PremiumService(param) {
         console.log(`Premium service called with param: ${param}`);
@@ -15,7 +13,6 @@ var input0;
         console.log(`Basic service called with param: ${param}`);
     }
     function IsPremiumUser(username) {
-        // Logica per determinare se l'utente è premium
         return username === 'premiumUser';
     }
     function VipService(param) {
@@ -42,6 +39,7 @@ var input0;
         for (let i = 0; i < m; i++) {
             map(jobs, i);
             for (let j = 0; j < r; j++) {
+                // miniSL: call(jobs, i, j)
                 reduce(jobs, i, j);
             }
         }
