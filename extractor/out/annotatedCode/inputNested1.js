@@ -66,7 +66,7 @@ function calc05() {
     return calc010() + 1000 + a;
 }
 // miniSL: end
-// miniSL: invoke main()
+// miniSL: function main()
 function main0() {
     // miniSL: invoke calc05()
     calc05();
@@ -136,4 +136,6 @@ function main0() {
     // miniSL: end
 }
 // miniSL: end
+// miniSL: invoke main()
+main0();
 //# sourceMappingURL=inputNested1.js.map

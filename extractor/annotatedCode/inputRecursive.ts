@@ -1,5 +1,5 @@
 
-// miniSL: invoke main()
+// miniSL: function main()
 function main1(): void {
     // miniSL: function calc011()
     function calc011(): number {
@@ -36,3 +36,7 @@ function main1(): void {
     calc011();
 }
 // miniSL: end
+
+
+// miniSL: invoke main()
+main1();

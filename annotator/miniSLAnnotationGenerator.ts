@@ -49,7 +49,7 @@ export class MiniSLAnnotationGenerator {
   }
 
   getFunctionStatement(functionSignature: string): string {
-    return this.startAnnotation + this.configData.controlStatements.function + " " + functionSignature + "" + this.endAnnotation;
+    return this.startAnnotation + this.configData.controlStatements.function + " " + functionSignature + this.endAnnotation;
   }
 
   getInvokeStatement(functionInvoked: string): string {

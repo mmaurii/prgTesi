@@ -39,7 +39,7 @@ var input0;
         for (let i = 0; i < m; i++) {
             map(jobs, i);
             for (let j = 0; j < r; j++) {
-                // miniSL: call(jobs, i, j)
+                // miniSL: call service1(jobs, i, j)
                 reduce(jobs, i, j);
             }
         }

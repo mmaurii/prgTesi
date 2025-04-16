@@ -53,7 +53,7 @@ namespace input1 {
     }
     // miniSL: end//
 
-    // miniSL: invoke main(jobs,m,r,isVipUser,username,param)//
+    // miniSL: function main(jobs,m,r,isVipUser,username,param)//
     function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
         // miniSL: for(i,m)//
         for (let i = 0; i < m; i++) {
@@ -108,5 +108,6 @@ namespace input1 {
     const param = 'exampleParam';
     const username = "user";
 
+    // miniSL: invoke main(jobs, m, r, isPremiumUser, param, username)//
     main(jobs, m, r, isPremiumUser, param, username);
 }

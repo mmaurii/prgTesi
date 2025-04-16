@@ -243,30 +243,6 @@ function calc16(): number {
 }
 // miniSL: end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // miniSL: function calc5()
 function calc5(): number {
     // miniSL: invoke calc4()
@@ -309,9 +285,12 @@ function calc(): number {
 }
 // miniSL: end
 
-// miniSL: invoke main()
+// miniSL: function main()
 function main(): void {
     // miniSL: invoke calc50()
     calc50();
 }
 // miniSL: end
+
+// miniSL: invoke main()
+main();

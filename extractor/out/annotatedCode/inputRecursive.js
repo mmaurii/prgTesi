@@ -1,4 +1,4 @@
-// miniSL: invoke main()
+// miniSL: function main()
 function main1() {
     // miniSL: function calc011()
     function calc011() {
@@ -34,4 +34,6 @@ function main1() {
     calc011();
 }
 // miniSL: end
+// miniSL: invoke main()
+main1();
 //# sourceMappingURL=inputRecursive.js.map

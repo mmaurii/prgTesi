@@ -23,6 +23,8 @@ class Annotator {
   private miniSLAnnotatorGenerator: MiniSLAnnotationGenerator;
   private code: string;
   private parser = new Parser();
+  private internalFunctions: Set<string> = new Set<string>();
+  private tree: Parser.Tree;
 
   constructor(filePathInput: string, filePathConfig: string) {
     this.filePathInput = filePathInput;
@@ -47,14 +49,17 @@ class Annotator {
     }
 
     // Parse the code
-    const tree = this.parser.parse(this.code);
+    this.tree = this.parser.parse(this.code);
 /*     console.log("AST:\n");
     console.log(tree.rootNode.toString());
  */    let indent = "";
     let annotation = "";
     const edits: { pos: number; text: string }[] = [];
-    const stack: Parser.SyntaxNode[] = [tree.rootNode];
+    const stack: Parser.SyntaxNode[] = [this.tree.rootNode];
 
+
+    // Collect internal functions
+    this.collectInternalFunctions(this.tree.rootNode);
 
     while (stack.length > 0) {
       const node = stack.pop();
@@ -73,7 +78,13 @@ class Annotator {
             functionParams += ")";
           }
 
-          const comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
+          let comment;
+          // Check if the function is main
+/*           if (functionName === "main") {
+            comment = this.miniSLAnnotatorGenerator.getInvokeStatement(functionName + functionParams) + "\n";
+          } else {
+          } */
+          comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
           edits.push({ pos: node.startIndex, text: comment });
         } else {
           console.error("Error: Function name or parameters not found.");
@@ -112,14 +123,20 @@ class Annotator {
         const nodeParentIndex = this.getIndexInParent(nodeParent!);
         const comment = node.parent?.parent?.child(nodeParentIndex - 1)?.text;
 
-        if(comment){
-          if(!comment.includes("miniSL:")){
+        if (comment) {
+          if (!comment.includes("miniSL:")) {
+            const functionNode = node.child(0); // identifier or member_expression
+            if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+              const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+              edits.push({ pos: node.startIndex, text: comment });
+            }
+          }
+        } else {
+          const functionNode = node.child(0); // identifier or member_expression
+          if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
             const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
             edits.push({ pos: node.startIndex, text: comment });
           }
-        }else{
-          const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
-          edits.push({ pos: node.startIndex, text: comment });
         }
 
         //controllo che ci sia la chiusura di un un blocco
@@ -149,20 +166,40 @@ class Annotator {
     return annotatedCode;
   }
 
+  collectInternalFunctions(node) {
+    const stack: Parser.SyntaxNode[] = [node];
+
+    while (stack.length > 0) {
+      const currentNode = stack.pop();
+
+      if (!currentNode) {
+        continue;
+      }
+
+      if (currentNode.type === "function_declaration") {
+        const nameNode = currentNode.childForFieldName("name");
+        if (nameNode) this.internalFunctions.add(nameNode.text);
+      }
+
+      stack.push(...currentNode.children.reverse());
+    }
+  }
+
+
   getIndexInParent(node: Parser.SyntaxNode): number {
     const parent = node.parent;
     if (!parent) return -1;
-  
+
     for (let i = 0; i < parent.childCount; i++) {
       const child = parent.child(i);
       if (child === node) {
         return i;
       }
     }
-  
+
     return -1; // non trovato
   }
-  
+
   getForEndIndex(condition: Parser.SyntaxNode): string {
     if (condition) {
       let valueNode;
@@ -188,9 +225,10 @@ class Annotator {
 
       if (initializer.type === "lexical_declaration" || initializer.type === "variable_declaration") {
         const declarator = initializer.namedChild(0);
-        valueNode = declarator?.childForFieldName("value");
+        valueNode = declarator?.childForFieldName("name");
       } else if (initializer.type === "assignment_expression") {
-        valueNode = initializer.child(2); // RHS of assignment
+        const leftNode = initializer.childForFieldName('left'); // LHS of assignment
+        valueNode = leftNode.type === "identifier" ? leftNode : null; // identifier or member_expression
       }
 
       if (!this.isFunctionCall(valueNode)) {

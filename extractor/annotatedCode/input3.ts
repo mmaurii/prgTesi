@@ -60,7 +60,7 @@ namespace input0 {
         }
         // miniSL: end
         
-    // miniSL: invoke main(jobs,m,r,isVipUser,username,param)
+    // miniSL: function main(jobs,m,r,isVipUser,username,param)
     function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
         // miniSL: for(i,m)
         for (let i = 0; i < m; i++) {
@@ -106,7 +106,7 @@ namespace input0 {
     const isPremiumUser = true;
     const param = 'exampleParam';
     const username = "user";
-
+    // miniSL: invoke main(jobs, m, r, isPremiumUser, param, username)
     main(jobs, m, r, isPremiumUser, param, username);
 
     // TEST FOR IF GUARD EXPRESSION

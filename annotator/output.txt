@@ -3,29 +3,25 @@ namespace input0 {
 
     // miniSL: function map(jobs,  index)
 function map(jobs: Job[], index: number): void {
-        // miniSL: invoke console.log(`Mapping jobs for index ${index}`)
-console.log(`Mapping jobs for index ${index}`);
+        console.log(`Mapping jobs for index ${index}`);
     // miniSL: end
 }
 
     // miniSL: function reduce(jobs,  mapIndex,  reduceIndex)
 function reduce(jobs: Job[], mapIndex: number, reduceIndex: number): void {
-        // miniSL: invoke console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`)
-console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
+        console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
     // miniSL: end
 }
 
     // miniSL: function PremiumService(param)
 function PremiumService(param: any): void {
-        // miniSL: invoke console.log(`Premium service called with param: ${param}`)
-console.log(`Premium service called with param: ${param}`);
+        console.log(`Premium service called with param: ${param}`);
     // miniSL: end
 }
 
     // miniSL: function BasicService(param)
 function BasicService(param: any): void {
-        // miniSL: invoke console.log(`Basic service called with param: ${param}`)
-console.log(`Basic service called with param: ${param}`);
+        console.log(`Basic service called with param: ${param}`);
     // miniSL: end
 }
 
@@ -37,15 +33,13 @@ function IsPremiumUser(username: string): boolean {
 
     // miniSL: function VipService(param)
 function VipService(param: any): void {
-        // miniSL: invoke console.log(`VIP service called with param: ${param}`)
-console.log(`VIP service called with param: ${param}`);
+        console.log(`VIP service called with param: ${param}`);
     // miniSL: end
 }
 
     // miniSL: function calc()
 function calc(): number {
-        return // miniSL: invoke Math.random()
-Math.random() * 1000;
+        return Math.random() * 1000;
     // miniSL: end
 }
 
@@ -65,8 +59,7 @@ else {
 calc() > 500;
         // miniSL: end
 }
-        // miniSL: invoke console.log("Stipendio calcolato: " + stp)
-console.log("Stipendio calcolato: " + stp);
+        console.log("Stipendio calcolato: " + stp);
         return true;
     // miniSL: end
 }
@@ -80,13 +73,13 @@ calc();
         
     // miniSL: function main(jobs,  m,  r,  isVipUser,  param,  username)
 function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
-        // miniSL: for(0, m)
+        // miniSL: for(i, m)
 for (let i = 0; i < m; i++) {
             // miniSL: invoke map(jobs, i)
 map(jobs, i);
-            // miniSL: for(0, r)
+            // miniSL: for(j, r)
 for (let j = 0; j < r; j++) {
-                // miniSL: call(jobs, i, j)
+                // miniSL: call service1(jobs, i, j)
                 reduce(jobs, i, j);
             // miniSL: end
 }

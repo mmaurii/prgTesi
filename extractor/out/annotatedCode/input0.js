@@ -49,7 +49,7 @@ var input0;
         return calc();
     }
     // miniSL: end
-    // miniSL: invoke main(jobs,m,r,isVipUser,username,param)
+    // miniSL: function main(jobs,m,r,isVipUser,username,param)
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)
         for (let i = 0; i < m; i++) {
@@ -100,6 +100,7 @@ var input0;
     const isPremiumUser = true;
     const param = 'exampleParam';
     const username = "user";
+    // miniSL: invoke main(jobs, m, r, isPremiumUser, param, username)
     main(jobs, m, r, isPremiumUser, param, username);
     // TEST FOR IF GUARD EXPRESSION
     //- miniSL: if(true && false)

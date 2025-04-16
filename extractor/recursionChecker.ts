@@ -46,25 +46,50 @@ export class RecursionChecker {
         this.buildCallGraph(); // Build the call graph from the annotations
     }
 
-    public haveRecursiveFunction(functionName): boolean {
-        const stack: string[] = [functionName];
+    haveRecursiveFunction(nodeName:string): boolean {
         const visited = new Set<string>();
-
-        while (stack.length > 0) {
-            const currentFunction = stack.pop()!;
-
-            if (visited.has(currentFunction)) {
-                return true;
+    
+        for (const startNode of this.callGraph.getItem(nodeName)) {
+            if (visited.has(startNode)) continue;
+    
+            const stack: { node: string, entered: boolean }[] = [];
+            const recStack = new Set<string>();
+    
+            stack.push({ node: startNode, entered: false });
+    
+            while (stack.length > 0) {
+                const current = stack.pop()!;
+    
+                if (current.entered) {
+                    // Esco dal nodo, rimuovo dallo stack di ricorsione
+                    recStack.delete(current.node);
+                    continue;
+                }
+    
+                // Prima volta che entro nel nodo
+                if (recStack.has(current.node)) {
+                    // Nodo già in corso ⇒ ciclo trovato
+                    return true;
+                }
+    
+                visited.add(current.node);
+                recStack.add(current.node);
+    
+                // Riaggiungo il nodo con entered = true per la "fase di uscita"
+                stack.push({ node: current.node, entered: true });
+    
+                // Aggiungo i vicini
+                for (const neighbor of this.callGraph.getItem(current.node) || []) {
+                    if (!visited.has(neighbor)) {
+                        stack.push({ node: neighbor, entered: false });
+                    } else if (recStack.has(neighbor)) {
+                        // Vicino già in corso ⇒ ciclo trovato
+                        return true;
+                    }
+                }
             }
-
-            visited.add(currentFunction);
-
-            const calledFunctions = this.callGraph.getItem(currentFunction);
-            calledFunctions.forEach((calledFunction) => {
-                stack.push(calledFunction);
-            });
         }
-
+    
         return false;
     }
 
@@ -96,13 +121,10 @@ export class RecursionChecker {
                 ann = ann.substring(0, startIndex - 1);
                 ann = ann.replace(/\s/g, "");
 
-                if (ann.startsWith(this.config.controlStatements.function)) {
+                 if (ann.startsWith(this.config.controlStatements.function)) {
                     const fnName = ann.substring(this.config.controlStatements.function.length);
                     indentLevel.push(fnName);
                     this.callGraph.addFunction(fnName);
-                } else if (ann.startsWith(this.config.controlStatements.invoke + "main")) {
-                    indentLevel.push("main");
-                    this.callGraph.addFunction("main");
                 } else if (ann.startsWith(this.config.controlStatements.invoke)) {
                     const fnName = ann.substring(this.config.controlStatements.invoke.length);
                     this.callGraph.addCall(indentLevel[indentLevel.length - 1], fnName);

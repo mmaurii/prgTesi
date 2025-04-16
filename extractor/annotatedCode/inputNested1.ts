@@ -73,7 +73,7 @@ function calc05(): number {
 // miniSL: end
 
 
-// miniSL: invoke main()
+// miniSL: function main()
 function main0(): void {
     // miniSL: invoke calc05()
     calc05();
@@ -148,3 +148,6 @@ function main0(): void {
     // miniSL: end
 }
 // miniSL: end
+
+// miniSL: invoke main()
+main0();

@@ -45,7 +45,7 @@ var input1;
         return true;
     }
     // miniSL: end//
-    // miniSL: invoke main(jobs,m,r,isVipUser,username,param)//
+    // miniSL: function main(jobs,m,r,isVipUser,username,param)//
     function main(jobs, m, r, isVipUser, param, username) {
         // miniSL: for(i,m)//
         for (let i = 0; i < m; i++) {
@@ -97,6 +97,7 @@ var input1;
     const isPremiumUser = true;
     const param = 'exampleParam';
     const username = "user";
+    // miniSL: invoke main(jobs, m, r, isPremiumUser, param, username)//
     main(jobs, m, r, isPremiumUser, param, username);
 })(input1 || (input1 = {}));
 //# sourceMappingURL=input1.js.map

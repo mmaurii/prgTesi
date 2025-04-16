@@ -28,6 +28,7 @@ function readFile(path) {
 class Annotator {
     constructor(filePathInput, filePathConfig) {
         this.parser = new Parser();
+        this.internalFunctions = new Set();
         this.filePathInput = filePathInput;
         this.filePathConfig = filePathConfig;
         this.code = "";
@@ -50,13 +51,15 @@ class Annotator {
                 yield this.loadFile();
             }
             // Parse the code
-            const tree = this.parser.parse(this.code);
+            this.tree = this.parser.parse(this.code);
             /*     console.log("AST:\n");
                 console.log(tree.rootNode.toString());
              */ let indent = "";
             let annotation = "";
             const edits = [];
-            const stack = [tree.rootNode];
+            const stack = [this.tree.rootNode];
+            // Collect internal functions
+            this.collectInternalFunctions(this.tree.rootNode);
             while (stack.length > 0) {
                 const node = stack.pop();
                 if (!node) {
@@ -71,7 +74,13 @@ class Annotator {
                         if (functionParams.charAt(functionParams.length - 1) !== ")") {
                             functionParams += ")";
                         }
-                        const comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
+                        let comment;
+                        // Check if the function is main
+                        /*           if (functionName === "main") {
+                                    comment = this.miniSLAnnotatorGenerator.getInvokeStatement(functionName + functionParams) + "\n";
+                                  } else {
+                                  } */
+                        comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
                         edits.push({ pos: node.startIndex, text: comment });
                     }
                     else {
@@ -115,13 +124,19 @@ class Annotator {
                     const comment = (_h = (_g = (_f = node.parent) === null || _f === void 0 ? void 0 : _f.parent) === null || _g === void 0 ? void 0 : _g.child(nodeParentIndex - 1)) === null || _h === void 0 ? void 0 : _h.text;
                     if (comment) {
                         if (!comment.includes("miniSL:")) {
-                            const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
-                            edits.push({ pos: node.startIndex, text: comment });
+                            const functionNode = node.child(0); // identifier or member_expression
+                            if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+                                const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                                edits.push({ pos: node.startIndex, text: comment });
+                            }
                         }
                     }
                     else {
-                        const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
-                        edits.push({ pos: node.startIndex, text: comment });
+                        const functionNode = node.child(0); // identifier or member_expression
+                        if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+                            const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                            edits.push({ pos: node.startIndex, text: comment });
+                        }
                     }
                     //controllo che ci sia la chiusura di un un blocco
                 }
@@ -143,10 +158,25 @@ class Annotator {
                 annotatedCode = annotatedCode.slice(0, edit.pos) + edit.text + annotatedCode.slice(edit.pos);
             }
             // print tree
-            console.log(this.printSyntaxTree(tree.rootNode, this.code));
+            //console.log(this.printSyntaxTree(tree.rootNode, this.code));
             //return edits.map(edit => edit.text).join("");
             return annotatedCode;
         });
+    }
+    collectInternalFunctions(node) {
+        const stack = [node];
+        while (stack.length > 0) {
+            const currentNode = stack.pop();
+            if (!currentNode) {
+                continue;
+            }
+            if (currentNode.type === "function_declaration") {
+                const nameNode = currentNode.childForFieldName("name");
+                if (nameNode)
+                    this.internalFunctions.add(nameNode.text);
+            }
+            stack.push(...currentNode.children.reverse());
+        }
     }
     getIndexInParent(node) {
         const parent = node.parent;
@@ -159,10 +189,6 @@ class Annotator {
             }
         }
         return -1; // non trovato
-    }
-    check(node) {
-        var _a;
-        return ((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === 'statement_block';
     }
     getForEndIndex(condition) {
         if (condition) {
@@ -187,10 +213,11 @@ class Annotator {
             let valueNode;
             if (initializer.type === "lexical_declaration" || initializer.type === "variable_declaration") {
                 const declarator = initializer.namedChild(0);
-                valueNode = declarator === null || declarator === void 0 ? void 0 : declarator.childForFieldName("value");
+                valueNode = declarator === null || declarator === void 0 ? void 0 : declarator.childForFieldName("name");
             }
             else if (initializer.type === "assignment_expression") {
-                valueNode = initializer.child(2); // RHS of assignment
+                const leftNode = initializer.childForFieldName('left'); // LHS of assignment
+                valueNode = leftNode.type === "identifier" ? leftNode : null; // identifier or member_expression
             }
             if (!this.isFunctionCall(valueNode)) {
                 return valueNode.text;
@@ -214,12 +241,6 @@ class Annotator {
             }
         }
         return false;
-    }
-    getRowPos(node) {
-        if (!node)
-            throw new Error("Error: node is null or undefined.");
-        const startPosition = node.startPosition;
-        return startPosition.row; // +1 to convert from 0-based to 1-based index
     }
     printSyntaxTree(node, sourceCode, indent = '', isLast = true) {
         const connector = isLast ? '└── ' : '├── ';

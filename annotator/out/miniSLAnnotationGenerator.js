@@ -34,7 +34,7 @@ export class MiniSLAnnotationGenerator {
         return this.startAnnotation + this.configData.controlStatements.end + this.endAnnotation;
     }
     getFunctionStatement(functionSignature) {
-        return this.startAnnotation + this.configData.controlStatements.function + " " + functionSignature + "" + this.endAnnotation;
+        return this.startAnnotation + this.configData.controlStatements.function + " " + functionSignature + this.endAnnotation;
     }
     getInvokeStatement(functionInvoked) {
         return this.startAnnotation + this.configData.controlStatements.invoke + " " + functionInvoked + this.endAnnotation;

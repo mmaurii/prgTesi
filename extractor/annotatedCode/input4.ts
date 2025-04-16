@@ -1,4 +1,4 @@
-// miniSL: invoke main(x, y, z, type)
+// miniSL: function main(x, y, z, type)
 function start(x:number, y:number, z:number, type:boolean): void {
     // miniSL: if(type)
     if (type) {
@@ -63,4 +63,5 @@ function z(): number {
 }
 // miniSL: end
 
+// miniSL: invoke main(1,2, 3, true)
 start(1,2, 3, true);

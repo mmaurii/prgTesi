@@ -1,4 +1,4 @@
-// miniSL: invoke main(x, y, z, type)
+// miniSL: function main(x, y, z, type)
 function start(x, y, z, type) {
     // miniSL: if(type)
     if (type) {
@@ -61,5 +61,6 @@ function z() {
     return 0;
 }
 // miniSL: end
+// miniSL: invoke main(1,2, 3, true)
 start(1, 2, 3, true);
 //# sourceMappingURL=input4.js.map

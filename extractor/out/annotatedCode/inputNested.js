@@ -244,10 +244,12 @@ function calc() {
     return Math.random() * 1000;
 }
 // miniSL: end
-// miniSL: invoke main()
+// miniSL: function main()
 function main() {
     // miniSL: invoke calc50()
     calc50();
 }
 // miniSL: end
+// miniSL: invoke main()
+main();
 //# sourceMappingURL=inputNested.js.map
