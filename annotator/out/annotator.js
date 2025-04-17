@@ -262,7 +262,7 @@ class Annotator {
         return result;
     }
 }
-const filePath = "./inputCode/input3.ts";
+const filePath = "./inputCode/input4.ts";
 const filePathConfig = "config.json";
 const annotator = new Annotator(filePath, filePathConfig);
 annotator.loadFile().then(() => {

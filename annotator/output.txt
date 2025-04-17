@@ -1,124 +1,65 @@
-namespace input0 {
-    type Job = any; // Sostituisci con un tipo specifico se conosci la struttura dei job
-
-    // miniSL: function map(jobs,  index)
-function map(jobs: Job[], index: number): void {
-        console.log(`Mapping jobs for index ${index}`);
-    // miniSL: end
-}
-
-    // miniSL: function reduce(jobs,  mapIndex,  reduceIndex)
-function reduce(jobs: Job[], mapIndex: number, reduceIndex: number): void {
-        console.log(`Reducing jobs for mapIndex ${mapIndex} and reduceIndex ${reduceIndex}`);
-    // miniSL: end
-}
-
-    // miniSL: function PremiumService(param)
-function PremiumService(param: any): void {
-        console.log(`Premium service called with param: ${param}`);
-    // miniSL: end
-}
-
-    // miniSL: function BasicService(param)
-function BasicService(param: any): void {
-        console.log(`Basic service called with param: ${param}`);
-    // miniSL: end
-}
-
-    // miniSL: function IsPremiumUser(username)
-function IsPremiumUser(username: string): boolean {
-        return username === 'premiumUser';
-    // miniSL: end
-}
-
-    // miniSL: function VipService(param)
-function VipService(param: any): void {
-        console.log(`VIP service called with param: ${param}`);
-    // miniSL: end
-}
-
-    // miniSL: function calc()
-function calc(): number {
-        return Math.random() * 1000;
-    // miniSL: end
-}
-
-
-
-    // miniSL: function calcolaStipendio(calcolaStipendioMensile,  flag)
-function calcolaStipendio(calcolaStipendioMensile: (calc: () => number) => number, flag: boolean): boolean {
-        let stp = // miniSL: invoke calcolaStipendioMensile(calc)
-calcolaStipendioMensile(calc);
-        // miniSL: if(flag)
-if (flag) {
-            stp = // miniSL: invoke calcolaStipendioMensile(calc)
-calcolaStipendioMensile(calc);
-        } // miniSL: else
+// miniSL: function main(x,  y,  z,  type)
+function main(x:number, y:number, z:number, type:boolean): void {
+    // miniSL: if(type)
+if (type) {
+        // miniSL: invoke evaluateX(x)
+evaluateX(x);
+        // miniSL: invoke evaluateY(z)
+evaluateY(z);
+    }// miniSL: else
 else {
-            return // miniSL: invoke calc()
-calc() > 500;
-        // miniSL: end
-}
-        console.log("Stipendio calcolato: " + stp);
-        return true;
+        // miniSL: invoke evaluateZ(z)
+evaluateZ(z);
     // miniSL: end
 }
-
-        // miniSL: function calcolaStipendioMensile(calc)
-function calcolaStipendioMensile(calc: () => number): number {
-            return // miniSL: invoke calc()
-calc();
-        // miniSL: end
-}
-        
-    // miniSL: function main(jobs,  m,  r,  isVipUser,  param,  username)
-function main(jobs: Job[], m: number, r: number, isVipUser: boolean, param: any, username: string): void {
-        // miniSL: for(i, m)
-for (let i = 0; i < m; i++) {
-            // miniSL: invoke map(jobs, i)
-map(jobs, i);
-            // miniSL: for(j, r)
-for (let j = 0; j < r; j++) {
-                // miniSL: call service1(jobs, i, j)
-                reduce(jobs, i, j);
-            // miniSL: end
-}
-        // miniSL: end
-}
-
-        // miniSL: if(isVipUser)
-if (isVipUser) {
-            // miniSL: if(IsPremiumUser(username))
-if (IsPremiumUser(username)) {
-                // miniSL: invoke PremiumService(param)
-PremiumService(param);
-            } // miniSL: else
-else {
-                // miniSL: invoke BasicService(param)
-BasicService(param);
-            // miniSL: end
-}
-        } // miniSL: else
-else {
-            // miniSL: invoke VipService(param)
-VipService(param);
-        // miniSL: end
-}
-
-        // miniSL: invoke calcolaStipendio(calcolaStipendioMensile, true)
-calcolaStipendio(calcolaStipendioMensile, true);
-    // miniSL: end
-}
-
-    // Esempio di utilizzo
-    const jobs: Job[] = ['Job1', 'Job2', 'Job3'];
-    const m = 3;
-    const r = 2;
-    const isPremiumUser = true;
-    const param = 'exampleParam';
-    const username = "user";
-
-    // miniSL: invoke main(jobs, m, r, isPremiumUser, param, username)
-main(jobs, m, r, isPremiumUser, param, username);
 // miniSL: end
 }
+
+// miniSL: function evaluateX(x)
+function evaluateX(x:number): number {
+    // miniSL: if(x > 0)
+if(x > 0) {
+        return 0;
+    }// miniSL: else
+else{
+        return 5;
+    // miniSL: end
+}
+// miniSL: end
+}
+
+// miniSL: function evaluateY(y)
+function evaluateY(y:number): number {
+    // miniSL: if(y > 0)
+if(y > 0) {
+        return 0;
+    }// miniSL: else
+else{
+        return 5;
+    // miniSL: end
+}
+// miniSL: end
+}
+
+// miniSL: function evaluateZ(z)
+function evaluateZ(z:number): number {
+    // miniSL: if(z > 0)
+if(z > 0) {
+        return 0;
+    }// miniSL: else
+else{
+        return 5;
+    // miniSL: end
+}
+
+// miniSL: end
+}
+
+// miniSL: function z()
+function z(): number {
+    // miniSL: call randomFN()
+    return 0;
+// miniSL: end
+}
+
+main(1,2, 3, true);

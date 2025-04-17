@@ -22,7 +22,7 @@ class Extractor {
     private functionsAnnotation = new Map();
     private annotations;
     private extractorConfigFilePath = './extractorConfig.json';
-    private annotatedCodeFilePath = "./annotatedCode/inputAnnotated.ts";
+    private annotatedCodeFilePath = "./annotatedCode/inputAnnotated4.ts";
     //flag to stop finding function annotations
     private endOfAnnotation = true;
     entrypoint: string = null;
@@ -178,20 +178,19 @@ class Extractor {
      * @param params input parameters of the miniSL main function
      * @returns miniSL code for the main function in a string format
      */
-    private writeMain(params: string): string {
-        if (params.charAt(params.length - 1) === "," || params.charAt(0) === ",") {
+    private writeMain(params: string[]): string {
+/*         if (params.charAt(params.length - 1) === "," || params.charAt(0) === ",") {
             throw new Error("Invalid syntax main can't have empty parameters");
-        }
-        const variables = params.split(",");
+        } */
         const regex = /^[a-zA-Z_]*[a-zA-Z0-9_]*$/;
-        const variablesMapped = variables.map(i => {
+        const paramsMapped = params.map(i => {
             if (i.trim().match(regex)) {
                 return i;
             } else {
                 throw new Error("Invalid parameter passed to main function");
             }
         });
-        return `(${variablesMapped.join(", ")}) => {\n`;
+        return `(${paramsMapped.join(", ")}) => {\n`;
     }
 
     /**
@@ -386,9 +385,9 @@ class Extractor {
                     } else if (ann.startsWith(this.config.controlStatements.call)) {
                         const fnName = ann.substring(this.config.controlStatements.call.length);
                         miniSLCode.push(this.writeCall(fnName, params) + "\n");
-                    } else if (ann.startsWith(this.config.controlStatements.invoke + "main")) {
+/*                     } else if (ann.startsWith(this.config.controlStatements.invoke + "main")) {
                         miniSLCode.push(this.writeMain(params));
-                    } else if (ann.startsWith(this.config.controlStatements.invoke)) {
+ */                    } else if (ann.startsWith(this.config.controlStatements.invoke)) {
                         const fnName = ann.substring(this.config.controlStatements.invoke.length);
                         //check if the guard is well formed
                         const paramsArray = params.split(",");
@@ -420,10 +419,6 @@ class Extractor {
     private translateAnnotations(): String[] {
         //array containing the miniSL code generated from the annotations
         let miniSLCode: String[] = new Array();
-        //counters for the opened and closed statements '{ and }'
-        let openedStatements = 0;
-        let closedStatements = 0;
-
 
         if (this.entrypoint !== null) {
             //selecting the unspaced annotation controlStatements
@@ -438,17 +433,7 @@ class Extractor {
             //start to identify the controlStatements type
             endIndex = ann.indexOf("(");
 
-            if (endIndex === -1) {
-                //check if the annotation is a control statement
-                if (ann === this.config.controlStatements.end) {
-                    miniSLCode.push(this.writeCloseStatement());
-                    closedStatements++;
-                } else if (ann === this.config.controlStatements.else) {
-                    miniSLCode.push(this.writeElse());
-                } else {
-                    throw new Error(`Error: Unknown statement: ${ann}`);
-                }
-            } else {
+            if (endIndex !== -1) {
                 //selecting the parameters of the controlStatements 
                 startIndex = endIndex + 1;
                 endIndex = ann.lastIndexOf(")");
@@ -466,11 +451,12 @@ class Extractor {
                             throw new Error("Invalid parameter passed to function annotation: " + annotatedLine);
                         }
 
-                        miniSLCode.push(this.getFunctionInvoked(fnName, paramsArray));
+                        this.translateFunctionAnnotations(fnName, paramsArray);
+                        miniSLCode.push(this.miniSLFunctionCode.get(fnName).code);
 
                         //wrapping the main code in an IIFE
                         miniSLCode.push(this.writeCloseStatement());
-                        miniSLCode = [this.writeMain(params), ...miniSLCode];
+                        miniSLCode = [this.writeMain(this.miniSLFunctionCode.get(fnName).params), ...miniSLCode];
                     } else {
                         throw new Error(`Unknown statement: ${ann}`);
                     }
@@ -478,6 +464,8 @@ class Extractor {
                     console.error(`Error while processing the annotation: ${ann}\nin line:${annotatedLine}\n`, error);
                     exit(0);
                 }
+            }else {
+                throw new Error("Invalid entrypoint annotation: " + annotatedLine);
             }
         } else {
             throw new Error("Entry point not found in the annotations");

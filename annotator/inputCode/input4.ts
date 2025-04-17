@@ -1,0 +1,40 @@
+function main(x:number, y:number, z:number, type:boolean): void {
+    if (type) {
+        evaluateX(x);
+        evaluateY(z);
+    }else {
+        evaluateZ(z);
+    }
+}
+
+function evaluateX(x:number): number {
+    if(x > 0) {
+        return 0;
+    }else{
+        return 5;
+    }
+}
+
+function evaluateY(y:number): number {
+    if(y > 0) {
+        return 0;
+    }else{
+        return 5;
+    }
+}
+
+function evaluateZ(z:number): number {
+    if(z > 0) {
+        return 0;
+    }else{
+        return 5;
+    }
+
+}
+
+function z(): number {
+    // miniSL: call randomFN()
+    return 0;
+}
+
+main(1,2, 3, true);
