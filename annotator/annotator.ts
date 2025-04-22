@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import Parser from "tree-sitter";
+import Parser, { SyntaxNode } from "tree-sitter";
 import TreeSitterTS from "tree-sitter-typescript";
 import { MiniSLAnnotationGenerator } from "./miniSLAnnotationGenerator.js";
 import { Config } from "./config.js";
@@ -25,6 +25,7 @@ class Annotator {
   private parser = new Parser();
   private internalFunctions: Set<string> = new Set<string>();
   private tree: Parser.Tree;
+  commentLines: Map<number, string> = new Map<number, string>();
 
   constructor(filePathInput: string, filePathConfig: string) {
     this.filePathInput = filePathInput;
@@ -57,9 +58,11 @@ class Annotator {
     const edits: { pos: number; text: string }[] = [];
     const stack: Parser.SyntaxNode[] = [this.tree.rootNode];
 
-
+    //console.log(this.tree.rootNode.toString());
     // Collect internal functions
     this.collectInternalFunctions(this.tree.rootNode);
+
+    let contextParameters: string[];
 
     while (stack.length > 0) {
       const node = stack.pop();
@@ -73,6 +76,7 @@ class Annotator {
 
         if (functionName && functionParams) {
           let params = functionParams.split(",").map(param => param.split(":")[0]);
+          contextParameters = params;
           functionParams = params.join(", ");
           if (functionParams.charAt(functionParams.length - 1) !== ")") {
             functionParams += ")";
@@ -80,19 +84,34 @@ class Annotator {
 
           let comment;
           // Check if the function is main
-/*           if (functionName === "main") {
-            comment = this.miniSLAnnotatorGenerator.getInvokeStatement(functionName + functionParams) + "\n";
-          } else {
-          } */
+          /*           if (functionName === "main") {
+                      comment = this.miniSLAnnotatorGenerator.getInvokeStatement(functionName + functionParams) + "\n";
+                    } else {
+                    } */
           comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
           edits.push({ pos: node.startIndex, text: comment });
         } else {
           console.error("Error: Function name or parameters not found.");
         }
       } else if (node.type === "if_statement") {
-        const condition = node.childForFieldName("condition")?.text;
+        let conditionNode = node.childForFieldName("condition");
+        let identifiers = this.extractIdentifiersFromCondition(conditionNode);
+        var condition: String = conditionNode?.text;
+
+        try {
+          let variable: Map<string, string> = this.getDeclaredValue(identifiers);
+          for(const [key, value] of variable) {
+            const regex = new RegExp(`(?<![\\w])${key}(?![\\w])`, 'g');
+            if (value !== null) {
+              condition = condition.replace(regex, String(value));
+            }
+          }
+        } catch (error) {
+          console.error(error.message);
+        }
+
         if (condition) {
-          const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition) + "\n";
+          const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition.toString()) + "\n";
           edits.push({ pos: node.startIndex, text: comment });
         } else {
           console.error("Error: If statement condition not found.");
@@ -107,6 +126,13 @@ class Annotator {
         const initializer = node.childForFieldName("initializer");
         const condition = node.childForFieldName("condition");
 
+        try {
+          // ottengo le variabili usate nella guardia del for
+          let variable: Map<string, any> = this.extractIdentifiers([initializer], contextParameters);
+          this.extractIdentifiers([condition], contextParameters).forEach((key, value) => { variable.set(key, value) });
+        } catch (error) {
+          console.error(error.massage);
+        }
         const startIndex = this.getForStartIndex(initializer);
         const endIndex = this.getForEndIndex(condition);
         if (startIndex && endIndex) {
@@ -119,9 +145,8 @@ class Annotator {
         //controllo che la call non sia dentro un if
       } else if (node.type === "call_expression" && node.parent?.parent?.type !== "if_statement") {
         // Check if the function is a service call
-        const nodeParent = node.parent;
-        const nodeParentIndex = this.getIndexInParent(nodeParent!);
-        const comment = node.parent?.parent?.child(nodeParentIndex - 1)?.text;
+        const comment = this.commentLines.get(node.startPosition.row - 1);
+
 
         if (comment) {
           if (!comment.includes("miniSL:")) {
@@ -166,11 +191,149 @@ class Annotator {
     return annotatedCode;
   }
 
+  extractIdentifiers(nodes: SyntaxNode[], contextParameters: string[]): Map<string, any> {
+    let result = new Map<string, any>();
+
+    for (const node of nodes) {
+      if (node.type === "identifier") {
+        const value = this.getDeclaredValue(nodes);
+        if (!value) {
+          throw new Error("Error: identifier not found in context parameters or was not a value.");
+        }
+        result.set(node.text, value);
+      }
+
+      for (const child of node.namedChildren) {
+        this.extractIdentifiers([child], contextParameters).forEach((key, value) => { result.set(key, value) });
+      }
+    }
+    return result;
+  }
+
+  getDeclaredValue(nodes: SyntaxNode[]): Map<string, any> {
+    const node = nodes[0];
+    let result = new Map<string, any>();
+    let value: boolean = null;
+    let isParameter: boolean = false;
+
+    if (!node || node.type !== "identifier") throw new Error("Error: node is not an identifier.");
+
+    const name = node.text;
+    const line = node.startPosition.row;
+
+    // Risali alla function_declaration più vicina
+    let funcNode: SyntaxNode | null = node;
+    while (funcNode && funcNode.type !== "function_declaration") {
+      funcNode = funcNode.parent;
+    }
+
+    if (!funcNode) throw new Error("Error: function not found.");
+
+    // Controlla se è un parametro della funzione
+    const paramList = funcNode.childForFieldName("parameters");
+    if (paramList) {
+      for (const param of paramList.namedChildren) {
+        if (param.type === "identifier" && nodes.includes(param)) {
+          result.set(param.text, null);
+        }
+      }
+    }
+
+    // Scansiona il corpo della funzione per cercare assegnazioni precedenti
+    const body = funcNode.childForFieldName("body");
+    if (!body) throw new Error("Error: function body not found.");
+
+    for(const n of nodes) {
+      value = this.scan(body, n.text, n.startPosition.row);
+      if (value) {
+        result.set(n.text, value);
+      }
+    }
+  
+    if(result.size !== nodes.length) throw new Error("Error: not all the variables were found.");
+
+    return result;
+  }
+
+  scan(node: SyntaxNode, name: string, line: number): any {
+    let foundValue: any = null;
+    if (node.startPosition.row >= line) return;
+
+    if (node.type === "lexical_declaration" || node.type === "variable_declaration") {
+      for (const declarator of node.namedChildren) {
+        const nameNode = declarator.childForFieldName("name");
+        const valueNode = declarator.childForFieldName("value");
+        if (nameNode?.text === name && valueNode) {
+          return this.extractLiteral(valueNode);
+        }
+      }
+    }
+
+    if (node.type === "assignment_expression") {
+      const left = node.childForFieldName("left");
+      const right = node.childForFieldName("right");
+      if (left?.type === "identifier" && left.text === name && right) {
+        return this.extractLiteral(right);
+      }
+    }
+
+    // Scansiona i figli del nodo corrente, ma è un problema perchè potrei avere valori multipli, risolvibile con una proprietà forse
+    for (const child of node.namedChildren) {
+      if (this.scan(child, name, line)) {
+        foundValue = true;
+      }
+    }
+
+    return foundValue;
+  }
+
+  extractLiteral(node: SyntaxNode): any {
+    switch (node.type) {
+      case "string":
+        return node.text.slice(1, -1);
+      case "number":
+        return parseFloat(node.text);
+      case "true":
+        return true;
+      case "false":
+        return false;
+      case "null":
+        return null;
+      case "undefined":
+        return undefined;
+      default:
+        return null; // non supportato
+    }
+  }
+
+  extractIdentifiersFromCondition(node: SyntaxNode): SyntaxNode[] {
+    const identifiers: Set<SyntaxNode> = new Set();
+
+    function walk(n: SyntaxNode) {
+      if (n.type === "identifier") {
+        identifiers.add(n);
+      }
+
+      for (const child of n.namedChildren) {
+        walk(child);
+      }
+    }
+
+    walk(node);
+    return Array.from(identifiers);
+  }
+
+
   collectInternalFunctions(node) {
     const stack: Parser.SyntaxNode[] = [node];
 
     while (stack.length > 0) {
       const currentNode = stack.pop();
+
+      //salvo commenti e loro posizione
+      if (currentNode.type === "comment") {
+        this.commentLines.set(currentNode.startPosition.row, currentNode.text);
+      }
 
       if (!currentNode) {
         continue;

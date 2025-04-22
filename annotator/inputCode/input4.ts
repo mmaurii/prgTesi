@@ -1,32 +1,38 @@
-function main(x:number, y:number, z:number, type:boolean): void {
+function main(x: number, y: number, z: number, type: boolean): void {
+    type = true;
     if (type) {
+        //questo è un commento
         evaluateX(x);
         evaluateY(z);
-    }else {
+    } else {
         evaluateZ(z);
     }
+
+    //questo è un commento
+    evaluateX(x);
+
 }
 
-function evaluateX(x:number): number {
-    if(x > 0) {
+function evaluateX(x: number): number {
+    if (x > 0) {
         return 0;
-    }else{
+    } else {
         return 5;
     }
 }
 
-function evaluateY(y:number): number {
-    if(y > 0) {
+function evaluateY(y: number): number {
+    if (y > 0) {
         return 0;
-    }else{
+    } else {
         return 5;
     }
 }
 
-function evaluateZ(z:number): number {
-    if(z > 0) {
+function evaluateZ(z: number): number {
+    if (z > 0) {
         return 0;
-    }else{
+    } else {
         return 5;
     }
 
@@ -37,4 +43,4 @@ function z(): number {
     return 0;
 }
 
-main(1,2, 3, true);
+main(1, 2, 3, true);

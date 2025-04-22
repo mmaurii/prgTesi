@@ -29,6 +29,7 @@ class Annotator {
     constructor(filePathInput, filePathConfig) {
         this.parser = new Parser();
         this.internalFunctions = new Set();
+        this.commentLines = new Map();
         this.filePathInput = filePathInput;
         this.filePathConfig = filePathConfig;
         this.code = "";
@@ -46,7 +47,7 @@ class Annotator {
     }
     annotate() {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            var _a, _b, _c, _d, _e;
             if (!this.code) {
                 yield this.loadFile();
             }
@@ -58,8 +59,10 @@ class Annotator {
             let annotation = "";
             const edits = [];
             const stack = [this.tree.rootNode];
+            //console.log(this.tree.rootNode.toString());
             // Collect internal functions
             this.collectInternalFunctions(this.tree.rootNode);
+            let contextParameters;
             while (stack.length > 0) {
                 const node = stack.pop();
                 if (!node) {
@@ -70,6 +73,7 @@ class Annotator {
                     let functionParams = (_b = node.childForFieldName("parameters")) === null || _b === void 0 ? void 0 : _b.text;
                     if (functionName && functionParams) {
                         let params = functionParams.split(",").map(param => param.split(":")[0]);
+                        contextParameters = params;
                         functionParams = params.join(", ");
                         if (functionParams.charAt(functionParams.length - 1) !== ")") {
                             functionParams += ")";
@@ -88,9 +92,23 @@ class Annotator {
                     }
                 }
                 else if (node.type === "if_statement") {
-                    const condition = (_c = node.childForFieldName("condition")) === null || _c === void 0 ? void 0 : _c.text;
+                    let conditionNode = node.childForFieldName("condition");
+                    let identifiers = this.extractIdentifiersFromCondition(conditionNode);
+                    var condition = conditionNode === null || conditionNode === void 0 ? void 0 : conditionNode.text;
+                    try {
+                        let variable = this.getDeclaredValue(identifiers);
+                        for (const [key, value] of variable) {
+                            const regex = new RegExp(`(?<![\\w])${key}(?![\\w])`, 'g');
+                            if (value !== null) {
+                                condition = condition.replace(regex, String(value));
+                            }
+                        }
+                    }
+                    catch (error) {
+                        console.error(error.message);
+                    }
                     if (condition) {
-                        const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition) + "\n";
+                        const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition.toString()) + "\n";
                         edits.push({ pos: node.startIndex, text: comment });
                     }
                     else {
@@ -106,6 +124,14 @@ class Annotator {
                     // For example: for (initializer; condition; update) { body }
                     const initializer = node.childForFieldName("initializer");
                     const condition = node.childForFieldName("condition");
+                    try {
+                        // ottengo le variabili usate nella guardia del for
+                        let variable = this.extractIdentifiers([initializer], contextParameters);
+                        this.extractIdentifiers([condition], contextParameters).forEach((key, value) => { variable.set(key, value); });
+                    }
+                    catch (error) {
+                        console.error(error.massage);
+                    }
                     const startIndex = this.getForStartIndex(initializer);
                     const endIndex = this.getForEndIndex(condition);
                     if (startIndex && endIndex) {
@@ -117,11 +143,9 @@ class Annotator {
                     }
                     //controllo che la call non sia dentro un if
                 }
-                else if (node.type === "call_expression" && ((_e = (_d = node.parent) === null || _d === void 0 ? void 0 : _d.parent) === null || _e === void 0 ? void 0 : _e.type) !== "if_statement") {
+                else if (node.type === "call_expression" && ((_d = (_c = node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.type) !== "if_statement") {
                     // Check if the function is a service call
-                    const nodeParent = node.parent;
-                    const nodeParentIndex = this.getIndexInParent(nodeParent);
-                    const comment = (_h = (_g = (_f = node.parent) === null || _f === void 0 ? void 0 : _f.parent) === null || _g === void 0 ? void 0 : _g.child(nodeParentIndex - 1)) === null || _h === void 0 ? void 0 : _h.text;
+                    const comment = this.commentLines.get(node.startPosition.row - 1);
                     if (comment) {
                         if (!comment.includes("miniSL:")) {
                             const functionNode = node.child(0); // identifier or member_expression
@@ -140,7 +164,7 @@ class Annotator {
                     }
                     //controllo che ci sia la chiusura di un un blocco
                 }
-                else if (node.type === '}' && ((_j = node.parent) === null || _j === void 0 ? void 0 : _j.type) === 'statement_block') {
+                else if (node.type === '}' && ((_e = node.parent) === null || _e === void 0 ? void 0 : _e.type) === 'statement_block') {
                     const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1] : undefined;
                     //controllo che non sia un else, '} else {'
                     if ((nextNode === null || nextNode === void 0 ? void 0 : nextNode.type) !== 'else_clause') {
@@ -163,10 +187,127 @@ class Annotator {
             return annotatedCode;
         });
     }
+    extractIdentifiers(nodes, contextParameters) {
+        let result = new Map();
+        for (const node of nodes) {
+            if (node.type === "identifier") {
+                const value = this.getDeclaredValue(nodes);
+                if (!value) {
+                    throw new Error("Error: identifier not found in context parameters or was not a value.");
+                }
+                result.set(node.text, value);
+            }
+            for (const child of node.namedChildren) {
+                this.extractIdentifiers([child], contextParameters).forEach((key, value) => { result.set(key, value); });
+            }
+        }
+        return result;
+    }
+    getDeclaredValue(nodes) {
+        const node = nodes[0];
+        let result = new Map();
+        let value = null;
+        let isParameter = false;
+        if (!node || node.type !== "identifier")
+            throw new Error("Error: node is not an identifier.");
+        const name = node.text;
+        const line = node.startPosition.row;
+        // Risali alla function_declaration più vicina
+        let funcNode = node;
+        while (funcNode && funcNode.type !== "function_declaration") {
+            funcNode = funcNode.parent;
+        }
+        if (!funcNode)
+            throw new Error("Error: function not found.");
+        // Controlla se è un parametro della funzione
+        const paramList = funcNode.childForFieldName("parameters");
+        if (paramList) {
+            for (const param of paramList.namedChildren) {
+                if (param.type === "identifier" && nodes.includes(param)) {
+                    result.set(param.text, null);
+                }
+            }
+        }
+        // Scansiona il corpo della funzione per cercare assegnazioni precedenti
+        const body = funcNode.childForFieldName("body");
+        if (!body)
+            throw new Error("Error: function body not found.");
+        for (const n of nodes) {
+            value = this.scan(body, n.text, n.startPosition.row);
+            if (value) {
+                result.set(n.text, value);
+            }
+        }
+        if (result.size !== nodes.length)
+            throw new Error("Error: not all the variables were found.");
+        return result;
+    }
+    scan(node, name, line) {
+        let foundValue = null;
+        if (node.startPosition.row >= line)
+            return;
+        if (node.type === "lexical_declaration" || node.type === "variable_declaration") {
+            for (const declarator of node.namedChildren) {
+                const nameNode = declarator.childForFieldName("name");
+                const valueNode = declarator.childForFieldName("value");
+                if ((nameNode === null || nameNode === void 0 ? void 0 : nameNode.text) === name && valueNode) {
+                    return this.extractLiteral(valueNode);
+                }
+            }
+        }
+        if (node.type === "assignment_expression") {
+            const left = node.childForFieldName("left");
+            const right = node.childForFieldName("right");
+            if ((left === null || left === void 0 ? void 0 : left.type) === "identifier" && left.text === name && right) {
+                return this.extractLiteral(right);
+            }
+        }
+        for (const child of node.namedChildren) {
+            if (this.scan(child, name, line)) {
+                foundValue = true;
+            }
+        }
+        return foundValue;
+    }
+    extractLiteral(node) {
+        switch (node.type) {
+            case "string":
+                return node.text.slice(1, -1);
+            case "number":
+                return parseFloat(node.text);
+            case "true":
+                return true;
+            case "false":
+                return false;
+            case "null":
+                return null;
+            case "undefined":
+                return undefined;
+            default:
+                return null; // non supportato
+        }
+    }
+    extractIdentifiersFromCondition(node) {
+        const identifiers = new Set();
+        function walk(n) {
+            if (n.type === "identifier") {
+                identifiers.add(n);
+            }
+            for (const child of n.namedChildren) {
+                walk(child);
+            }
+        }
+        walk(node);
+        return Array.from(identifiers);
+    }
     collectInternalFunctions(node) {
         const stack = [node];
         while (stack.length > 0) {
             const currentNode = stack.pop();
+            //salvo commenti e loro posizione
+            if (currentNode.type === "comment") {
+                this.commentLines.set(currentNode.startPosition.row, currentNode.text);
+            }
             if (!currentNode) {
                 continue;
             }
