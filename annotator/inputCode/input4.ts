@@ -8,7 +8,7 @@ function main(x: number, y: number, z: number, type: boolean): void {
     a = 1+x.toString();
     a = 1+a.x;
     a = a===a;
- */    a = 1===1;
+    a = 1===1; */
     a = 1+5;
     if (a>0) {
         //questo è un commento

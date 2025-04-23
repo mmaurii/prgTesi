@@ -17,15 +17,32 @@ async function readFile(path: string): Promise<string> {
   return ""; // Return empty string in case of error
 }
 
+function prettyPrint(node: SyntaxNode, depth = 0): string {
+  const indent = "  ".repeat(depth); // 2 spaces per level
+  let output = `${indent}(${node.type}`;
+
+  if (node.namedChildCount === 0) {
+    output += ` ${node.text})`;
+    return output;
+  }
+
+  for (const child of node.namedChildren) {
+    output += `\n${prettyPrint(child, depth + 1)}`;
+  }
+
+  output += `\n${indent})`;
+  return output;
+}
+
 class Annotator {
   private filePathInput: string;
   private filePathConfig: string;
   private miniSLAnnotatorGenerator: MiniSLAnnotationGenerator;
   private code: string;
   private parser = new Parser();
-  private internalFunctions: Set<string> = new Set<string>();
+  private internalFunctions: Map<string, SyntaxNode[]> = new Map<string, SyntaxNode[]>();
   private tree: Parser.Tree;
-  private commentLines: Map<number, string> = new Map<number, string>();
+  private commentLines: Set<SyntaxNode> = new Set<SyntaxNode>();
   private contextParameters = new Map<string, any>();
 
   constructor(filePathInput: string, filePathConfig: string) {
@@ -45,7 +62,7 @@ class Annotator {
     return this.code;
   }
 
-  async annotate(): Promise<string> {
+  async annotate(entryPoint:string="main"): Promise<string> {
     if (!this.code) {
       await this.loadFile()
     }
@@ -59,9 +76,22 @@ class Annotator {
     const edits: { pos: number; text: string }[] = [];
     const stack: Parser.SyntaxNode[] = [this.tree.rootNode];
 
-    //console.log(this.tree.rootNode.toString());
+    console.log(prettyPrint(this.tree.rootNode));
     // Collect internal functions
     this.collectInternalFunctions(this.tree.rootNode);
+
+    let callAnnotations: Set<string> = new Set<string>();
+    // se non ci sono annotazioni non faccio nulla
+    for (const node of this.commentLines) {
+       if(node.text.includes("miniSL:")){
+        callAnnotations.add(node.text);
+       }
+    }
+
+    if (callAnnotations.size === 0) {
+      console.log("No annotations found.");
+      return this.code;
+    }
 
     let contextParameters: string[];
 
@@ -147,11 +177,9 @@ class Annotator {
 
         //controllo che la call non sia dentro un if
       } else if (node.type === "call_expression" && node.parent?.parent?.type !== "if_statement") {
-        // Check if the function is a service call
-        const comment = this.commentLines.get(node.startPosition.row - 1);
-
-
-        if (comment) {
+        // Check if the function is a service call          
+        if (this.commentLines.has(node)) {
+          let comment = node.text;
           if (!comment.includes("miniSL:")) {
             const functionNode = node.child(0); // identifier or member_expression
             if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
@@ -431,13 +459,17 @@ class Annotator {
 
   collectInternalFunctions(node) {
     const stack: Parser.SyntaxNode[] = [node];
+    let currentFunction:string = null;
 
     while (stack.length > 0) {
       const currentNode = stack.pop();
 
       //salvo commenti e loro posizione
       if (currentNode.type === "comment") {
-        this.commentLines.set(currentNode.startPosition.row, currentNode.text);
+        this.commentLines.add(currentNode);
+        if (currentNode.text.includes("miniSL:")) {
+          this.internalFunctions.get(currentFunction).push(currentNode);
+        }
       }
 
       if (!currentNode) {
@@ -446,7 +478,8 @@ class Annotator {
 
       if (currentNode.type === "function_declaration") {
         const nameNode = currentNode.childForFieldName("name");
-        if (nameNode) this.internalFunctions.add(nameNode.text);
+        currentFunction = nameNode.text;
+        if (nameNode) this.internalFunctions.set(nameNode.text,[]);
       }
 
       stack.push(...currentNode.children.reverse());

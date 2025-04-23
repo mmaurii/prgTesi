@@ -36,8 +36,9 @@ class Extractor {
         this.entrypoint = null;
     }
     extract() {
-        return __awaiter(this, arguments, void 0, function* (path = this.annotatedCodeFilePath) {
+        return __awaiter(this, arguments, void 0, function* (entryPoint = "main", path = this.annotatedCodeFilePath) {
             let miniSLCode = "\n";
+            this.entrypoint = entryPoint;
             //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
             this.config = JSON.parse(yield readFile(this.extractorConfigFilePath));
             const lines = (yield readFile(path)).split("\n");
@@ -51,7 +52,7 @@ class Extractor {
                 //Recursion checking
                 const recursionChecker = new RecursionChecker(this.annotations, this.config);
                 recursionChecker.printCallGraph();
-                if (recursionChecker.haveRecursiveFunction("main")) {
+                if (recursionChecker.haveRecursiveFunction(entryPoint)) {
                     console.error("Recursion detected in the code");
                     return;
                 }
@@ -658,12 +659,12 @@ class Extractor {
                     code.shift(); //Remove first "function" statement
                     this.functionsAnnotation.set(fnName, { params: params, code: code });
                 }
-                else if (annotation.startsWith(this.config.controlStatements.invoke + "main")) {
+                else if (annotation.startsWith(this.config.controlStatements.invoke + this.entrypoint)) {
                     this.entrypoint = ann;
                 }
             }
         }
     }
 }
-new Extractor().extract();
+new Extractor().extract("evaluateZ");
 //# sourceMappingURL=extractor.js.map

@@ -27,8 +27,9 @@ class Extractor {
     private endOfAnnotation = true;
     entrypoint: string = null;
 
-    public async extract(path: string = this.annotatedCodeFilePath): Promise<void> {
+    public async extract(entryPoint:string = "main",path: string = this.annotatedCodeFilePath): Promise<void> {
         let miniSLCode = "\n";
+        this.entrypoint = entryPoint;
 
         //ogetto contenente le configurazioni con cui sono state codificate le annotazioni
         this.config = JSON.parse(await readFile(this.extractorConfigFilePath));
@@ -46,7 +47,7 @@ class Extractor {
             //Recursion checking
             const recursionChecker = new RecursionChecker(this.annotations, this.config);
             recursionChecker.printCallGraph();
-            if (recursionChecker.haveRecursiveFunction("main")) {
+            if (recursionChecker.haveRecursiveFunction(entryPoint)) {
                 console.error("Recursion detected in the code");
                 return;
             }
@@ -698,7 +699,7 @@ class Extractor {
                     code.shift(); //Remove first "function" statement
 
                     this.functionsAnnotation.set(fnName, {params:params,code:code});
-                } else if (annotation.startsWith(this.config.controlStatements.invoke + "main")) {
+                } else if (annotation.startsWith(this.config.controlStatements.invoke + this.entrypoint)) {
                     this.entrypoint = ann;
                 }
             }

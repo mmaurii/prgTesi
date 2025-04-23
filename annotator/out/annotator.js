@@ -25,11 +25,24 @@ function readFile(path) {
         return ""; // Return empty string in case of error
     });
 }
+function prettyPrint(node, depth = 0) {
+    const indent = "  ".repeat(depth); // 2 spaces per level
+    let output = `${indent}(${node.type}`;
+    if (node.namedChildCount === 0) {
+        output += ` ${node.text})`;
+        return output;
+    }
+    for (const child of node.namedChildren) {
+        output += `\n${prettyPrint(child, depth + 1)}`;
+    }
+    output += `\n${indent})`;
+    return output;
+}
 class Annotator {
     constructor(filePathInput, filePathConfig) {
         this.parser = new Parser();
-        this.internalFunctions = new Set();
-        this.commentLines = new Map();
+        this.internalFunctions = new Map();
+        this.commentLines = new Set();
         this.contextParameters = new Map();
         this.filePathInput = filePathInput;
         this.filePathConfig = filePathConfig;
@@ -47,7 +60,7 @@ class Annotator {
         return this.code;
     }
     annotate() {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, arguments, void 0, function* (entryPoint = "main") {
             var _a, _b, _c, _d, _e;
             if (!this.code) {
                 yield this.loadFile();
@@ -60,9 +73,20 @@ class Annotator {
             let annotation = "";
             const edits = [];
             const stack = [this.tree.rootNode];
-            //console.log(this.tree.rootNode.toString());
+            console.log(prettyPrint(this.tree.rootNode));
             // Collect internal functions
             this.collectInternalFunctions(this.tree.rootNode);
+            let callAnnotations = new Set();
+            // se non ci sono annotazioni non faccio nulla
+            for (const node of this.commentLines) {
+                if (node.text.includes("miniSL:")) {
+                    callAnnotations.add(node.text);
+                }
+            }
+            if (callAnnotations.size === 0) {
+                console.log("No annotations found.");
+                return this.code;
+            }
             let contextParameters;
             while (stack.length > 0) {
                 const node = stack.pop();
@@ -146,9 +170,9 @@ class Annotator {
                     //controllo che la call non sia dentro un if
                 }
                 else if (node.type === "call_expression" && ((_d = (_c = node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.type) !== "if_statement") {
-                    // Check if the function is a service call
-                    const comment = this.commentLines.get(node.startPosition.row - 1);
-                    if (comment) {
+                    // Check if the function is a service call          
+                    if (this.commentLines.has(node)) {
+                        let comment = node.text;
                         if (!comment.includes("miniSL:")) {
                             const functionNode = node.child(0); // identifier or member_expression
                             if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
@@ -400,19 +424,24 @@ class Annotator {
     }
     collectInternalFunctions(node) {
         const stack = [node];
+        let currentFunction = null;
         while (stack.length > 0) {
             const currentNode = stack.pop();
             //salvo commenti e loro posizione
             if (currentNode.type === "comment") {
-                this.commentLines.set(currentNode.startPosition.row, currentNode.text);
+                this.commentLines.add(currentNode);
+                if (currentNode.text.includes("miniSL:")) {
+                    this.internalFunctions.get(currentFunction).push(currentNode);
+                }
             }
             if (!currentNode) {
                 continue;
             }
             if (currentNode.type === "function_declaration") {
                 const nameNode = currentNode.childForFieldName("name");
+                currentFunction = nameNode.text;
                 if (nameNode)
-                    this.internalFunctions.add(nameNode.text);
+                    this.internalFunctions.set(nameNode.text, []);
             }
             stack.push(...currentNode.children.reverse());
         }

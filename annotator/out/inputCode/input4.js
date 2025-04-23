@@ -7,7 +7,7 @@ function main(x, y, z, type) {
         a = 1+x.toString();
         a = 1+a.x;
         a = a===a;
-     */ a = 1 === 1;
+        a = 1===1; */
     a = 1 + 5;
     if (a > 0) {
         //questo è un commento
@@ -47,6 +47,7 @@ function evaluateZ(z) {
 function z() {
     // miniSL: call randomFN()
     return 0;
+    // miniSL: call randomFN()
 }
 main(1, 2, 3, true);
 //# sourceMappingURL=input4.js.map
