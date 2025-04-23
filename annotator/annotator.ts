@@ -25,7 +25,8 @@ class Annotator {
   private parser = new Parser();
   private internalFunctions: Set<string> = new Set<string>();
   private tree: Parser.Tree;
-  commentLines: Map<number, string> = new Map<number, string>();
+  private commentLines: Map<number, string> = new Map<number, string>();
+  private contextParameters = new Map<string, any>();
 
   constructor(filePathInput: string, filePathConfig: string) {
     this.filePathInput = filePathInput;
@@ -94,13 +95,14 @@ class Annotator {
           console.error("Error: Function name or parameters not found.");
         }
       } else if (node.type === "if_statement") {
+        this.contextParameters.clear();
         let conditionNode = node.childForFieldName("condition");
         let identifiers = this.extractIdentifiersFromCondition(conditionNode);
         var condition: String = conditionNode?.text;
 
         try {
-          let variable: Map<string, string> = this.getDeclaredValue(identifiers);
-          for(const [key, value] of variable) {
+          this.getDeclaredValue(identifiers);
+          for (const [key, value] of this.contextParameters) {
             const regex = new RegExp(`(?<![\\w])${key}(?![\\w])`, 'g');
             if (value !== null) {
               condition = condition.replace(regex, String(value));
@@ -128,8 +130,9 @@ class Annotator {
 
         try {
           // ottengo le variabili usate nella guardia del for
-          let variable: Map<string, any> = this.extractIdentifiers([initializer], contextParameters);
-          this.extractIdentifiers([condition], contextParameters).forEach((key, value) => { variable.set(key, value) });
+          this.getDeclaredValue([initializer]);
+          this.getDeclaredValue([condition]);
+
         } catch (error) {
           console.error(error.massage);
         }
@@ -191,28 +194,27 @@ class Annotator {
     return annotatedCode;
   }
 
-  extractIdentifiers(nodes: SyntaxNode[], contextParameters: string[]): Map<string, any> {
-    let result = new Map<string, any>();
-
-    for (const node of nodes) {
-      if (node.type === "identifier") {
-        const value = this.getDeclaredValue(nodes);
-        if (!value) {
-          throw new Error("Error: identifier not found in context parameters or was not a value.");
+  /*   extractIdentifiers(nodes: SyntaxNode[], contextParameters: string[]): Map<string, any> {
+      let result = new Map<string, any>();
+  
+      for (const node of nodes) {
+        if (node.type === "identifier") {
+          const value = this.getDeclaredValue(nodes);
+          if (!value) {
+            throw new Error("Error: identifier not found in context parameters or was not a value.");
+          }
+          result.set(node.text, value);
         }
-        result.set(node.text, value);
+  
+        for (const child of node.namedChildren) {
+          this.extractIdentifiers([child], contextParameters).forEach((key, value) => { result.set(key, value) });
+        }
       }
+      return result;
+    } */
 
-      for (const child of node.namedChildren) {
-        this.extractIdentifiers([child], contextParameters).forEach((key, value) => { result.set(key, value) });
-      }
-    }
-    return result;
-  }
-
-  getDeclaredValue(nodes: SyntaxNode[]): Map<string, any> {
+  getDeclaredValue(nodes: SyntaxNode[]): void {
     const node = nodes[0];
-    let result = new Map<string, any>();
     let value: boolean = null;
     let isParameter: boolean = false;
 
@@ -231,10 +233,16 @@ class Annotator {
 
     // Controlla se è un parametro della funzione
     const paramList = funcNode.childForFieldName("parameters");
+    const nodeNames = nodes.map(n => n.text);
+
     if (paramList) {
       for (const param of paramList.namedChildren) {
-        if (param.type === "identifier" && nodes.includes(param)) {
-          result.set(param.text, null);
+        if (param.type === "required_parameter") {
+          const nameNode = param.namedChildren.find(n => n.type === "identifier");
+
+          if (nameNode && nodeNames.includes(nameNode.text)) {
+            this.contextParameters.set(nameNode.text, null);
+          }
         }
       }
     }
@@ -243,20 +251,14 @@ class Annotator {
     const body = funcNode.childForFieldName("body");
     if (!body) throw new Error("Error: function body not found.");
 
-    for(const n of nodes) {
-      value = this.scan(body, n.text, n.startPosition.row);
-      if (value) {
-        result.set(n.text, value);
-      }
+    for (const n of nodes) {
+      this.scan(body, n.text, n.startPosition.row);
     }
-  
-    if(result.size !== nodes.length) throw new Error("Error: not all the variables were found.");
 
-    return result;
+    if (this.contextParameters.size !== nodes.length) throw new Error("Error: not all the variables were found.");
   }
 
-  scan(node: SyntaxNode, name: string, line: number): any {
-    let foundValue: any = null;
+  scan(node: SyntaxNode, name: string, line: number): void {
     if (node.startPosition.row >= line) return;
 
     if (node.type === "lexical_declaration" || node.type === "variable_declaration") {
@@ -264,7 +266,9 @@ class Annotator {
         const nameNode = declarator.childForFieldName("name");
         const valueNode = declarator.childForFieldName("value");
         if (nameNode?.text === name && valueNode) {
-          return this.extractLiteral(valueNode);
+          if (this.isSafe(valueNode)) {
+            this.contextParameters.set(name, this.extractLiteral(valueNode));
+          }
         }
       }
     }
@@ -273,22 +277,37 @@ class Annotator {
       const left = node.childForFieldName("left");
       const right = node.childForFieldName("right");
       if (left?.type === "identifier" && left.text === name && right) {
-        return this.extractLiteral(right);
+        if (this.isSafe(right)) {
+          this.contextParameters.set(name, this.extractLiteral(right));
+        }
       }
     }
 
     // Scansiona i figli del nodo corrente, ma è un problema perchè potrei avere valori multipli, risolvibile con una proprietà forse
     for (const child of node.namedChildren) {
-      if (this.scan(child, name, line)) {
-        foundValue = true;
-      }
+      this.scan(child, name, line)
     }
+  }
 
-    return foundValue;
+  private isSafe(node:SyntaxNode): boolean {
+    const invalidTypes = [
+      "arrow_function",
+      "function",
+      "function_expression",
+      "call_expression",
+      "identifier"
+    ];
+
+    return !invalidTypes.includes(node.type) &&
+    !node.descendantsOfType("call_expression").length &&
+    !node.descendantsOfType("identifier").length &&
+    !node.descendantsOfType("member_expression").length;
   }
 
   extractLiteral(node: SyntaxNode): any {
     switch (node.type) {
+      case "binary_expression":
+        return this.evaluateExpression(node); 
       case "string":
         return node.text.slice(1, -1);
       case "number":
@@ -323,6 +342,92 @@ class Annotator {
     return Array.from(identifiers);
   }
 
+  /**
+   * Ritorna il valore del lato destro dell'espressione binaria o null se non è valido
+   * @param node 
+   * @returns 
+   */
+  evaluateExpression(node: SyntaxNode): any {
+    if (!node) return null;
+  
+    switch (node.type) {
+      case "number":
+        return Number(node.text);
+  
+      case "string":
+      case "string_fragment":
+        return node.text.slice(1, -1); // remove quotes
+  
+      case "true":
+        return true;
+  
+      case "false":
+        return false;
+  
+      case "identifier":
+        return this.contextParameters.has(node.text) ? this.contextParameters.get(node.text) : null;
+  
+      case "parenthesized_expression":
+        return this.evaluateExpression(node.namedChildren[0]);
+  
+      case "binary_expression": {
+        const left = this.evaluateExpression(node.childForFieldName("left"));
+        const right = this.evaluateExpression(node.childForFieldName("right"));
+        const operator = node.childForFieldName("operator")?.text ?? this.extractOperator(node);
+  
+        if (left === null || right === null) return null;
+  
+        try {
+          switch (operator) {
+            case "+":
+              return left + right;
+            case "-":
+              return left - right;
+            case "*":
+              return left * right;
+            case "/":
+              return left / right;
+            case "===":
+            case "==":
+              return left == right;
+            case "!==":
+            case "!=":
+              return left != right;
+            case "<":
+              return left < right;
+            case ">":
+              return left > right;
+            case "<=":
+              return left <= right;
+            case ">=":
+              return left >= right;
+            case "&&":
+              return left && right;
+            case "||":
+              return left || right;
+            default:
+              return null;
+          }
+        } catch {
+          return null;
+        }
+      }
+  
+      default:
+        return null;
+    }
+  }
+  
+  extractOperator(node: SyntaxNode): string {
+    // Some parsers (like TypeScript) do not expose 'operator' as a field
+    const children = node.children;
+    for (const child of children) {
+      if (child.isNamed) continue;
+      return child.text.trim(); // the operator is usually the unnamed child
+    }
+    return "";
+  }
+  
 
   collectInternalFunctions(node) {
     const stack: Parser.SyntaxNode[] = [node];

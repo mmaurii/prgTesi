@@ -1,8 +1,18 @@
+var pippo = true;
+
 // miniSL: function main(x,  y,  z,  type)
 function main(x: number, y: number, z: number, type: boolean): void {
-    type = true;
-    // miniSL: if(true)
-if (type) {
+    let a;
+/*     a = 1+a;
+    a = evaluateX;
+    a = 1+evaluateX(x);
+    a = 1+x.toString();
+    a = 1+a.x;
+    a = a===a;
+ */    a = 1===1;
+    a = 1+5;
+    // miniSL: if(6>0)
+if (a>0) {
         //questo è un commento
         // miniSL: invoke evaluateX(x)
 evaluateX(x);
