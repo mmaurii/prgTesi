@@ -12,10 +12,11 @@ serviceDecl: 'service' ID ':' '(' 'void' ')' '->' 'void' ';';
 
 //aggiungi statement vuoto?
 stm: serviceCall
-   | 'if' '(' expOrCall ')' '{' stm '}' 'else' '{' stm '}' stm?
-   | 'for' '(' ID 'in' 'range' '(' NUMBER ',' exp ')' ')' '{' stm '}' stm?;
+   | 'if' '(' expOrCall ')' '{' stm '}' 'else' '{' stm '}' stm
+   | 'for' '(' ID 'in' 'range' '(' NUMBER ',' exp ')' ')' '{' stm '}' stm
+   | ;
 
-serviceCall: 'call' ID '(' (exp (',' exp)*)? ')' stm?;
+serviceCall: 'call' ID '(' (exp (',' exp)*)? ')' stm;
 
 expOrCall: exp | serviceCall;
 

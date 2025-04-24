@@ -666,5 +666,5 @@ class Extractor {
         }
     }
 }
-new Extractor().extract("evaluateZ");
+new Extractor().extract();
 //# sourceMappingURL=extractor.js.map

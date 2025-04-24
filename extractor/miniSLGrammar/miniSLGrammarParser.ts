@@ -251,9 +251,8 @@ export default class miniSLGrammarParser extends Parser {
 	public stm(): StmContext {
 		let localctx: StmContext = new StmContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 6, miniSLGrammarParser.RULE_stm);
-		let _la: number;
 		try {
-			this.state = 76;
+			this.state = 75;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
 			case 17:
@@ -288,59 +287,50 @@ export default class miniSLGrammarParser extends Parser {
 				this.stm();
 				this.state = 55;
 				this.match(miniSLGrammarParser.T__4);
-				this.state = 57;
-				this._errHandler.sync(this);
-				_la = this._input.LA(1);
-				if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 141312) !== 0)) {
-					{
-					this.state = 56;
-					this.stm();
-					}
-				}
-
+				this.state = 56;
+				this.stm();
 				}
 				break;
 			case 13:
 				this.enterOuterAlt(localctx, 3);
 				{
-				this.state = 59;
+				this.state = 58;
 				this.match(miniSLGrammarParser.T__12);
+				this.state = 59;
+				this.match(miniSLGrammarParser.T__0);
 				this.state = 60;
-				this.match(miniSLGrammarParser.T__0);
-				this.state = 61;
 				this.match(miniSLGrammarParser.ID);
-				this.state = 62;
+				this.state = 61;
 				this.match(miniSLGrammarParser.T__13);
-				this.state = 63;
+				this.state = 62;
 				this.match(miniSLGrammarParser.T__14);
-				this.state = 64;
+				this.state = 63;
 				this.match(miniSLGrammarParser.T__0);
-				this.state = 65;
+				this.state = 64;
 				this.match(miniSLGrammarParser.NUMBER);
-				this.state = 66;
+				this.state = 65;
 				this.match(miniSLGrammarParser.T__15);
-				this.state = 67;
+				this.state = 66;
 				this.exp(0);
+				this.state = 67;
+				this.match(miniSLGrammarParser.T__1);
 				this.state = 68;
 				this.match(miniSLGrammarParser.T__1);
 				this.state = 69;
-				this.match(miniSLGrammarParser.T__1);
-				this.state = 70;
 				this.match(miniSLGrammarParser.T__3);
-				this.state = 71;
+				this.state = 70;
 				this.stm();
-				this.state = 72;
+				this.state = 71;
 				this.match(miniSLGrammarParser.T__4);
-				this.state = 74;
-				this._errHandler.sync(this);
-				_la = this._input.LA(1);
-				if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 141312) !== 0)) {
-					{
-					this.state = 73;
-					this.stm();
-					}
+				this.state = 72;
+				this.stm();
 				}
-
+				break;
+			case 2:
+			case 5:
+				this.enterOuterAlt(localctx, 4);
+				// tslint:disable-next-line:no-empty
+				{
 				}
 				break;
 			default:
@@ -369,50 +359,42 @@ export default class miniSLGrammarParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 78;
+			this.state = 77;
 			this.match(miniSLGrammarParser.T__16);
-			this.state = 79;
+			this.state = 78;
 			this.match(miniSLGrammarParser.ID);
-			this.state = 80;
+			this.state = 79;
 			this.match(miniSLGrammarParser.T__0);
-			this.state = 89;
+			this.state = 88;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
 			if (_la===1 || _la===31 || _la===32 || _la===33) {
 				{
-				this.state = 81;
+				this.state = 80;
 				this.exp(0);
-				this.state = 86;
+				this.state = 85;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 				while (_la===16) {
 					{
 					{
-					this.state = 82;
+					this.state = 81;
 					this.match(miniSLGrammarParser.T__15);
-					this.state = 83;
+					this.state = 82;
 					this.exp(0);
 					}
 					}
-					this.state = 88;
+					this.state = 87;
 					this._errHandler.sync(this);
 					_la = this._input.LA(1);
 				}
 				}
 			}
 
-			this.state = 91;
+			this.state = 90;
 			this.match(miniSLGrammarParser.T__1);
-			this.state = 93;
-			this._errHandler.sync(this);
-			_la = this._input.LA(1);
-			if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 141312) !== 0)) {
-				{
-				this.state = 92;
-				this.stm();
-				}
-			}
-
+			this.state = 91;
+			this.stm();
 			}
 		}
 		catch (re) {
@@ -434,7 +416,7 @@ export default class miniSLGrammarParser extends Parser {
 		let localctx: ExpOrCallContext = new ExpOrCallContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 10, miniSLGrammarParser.RULE_expOrCall);
 		try {
-			this.state = 97;
+			this.state = 95;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
 			case 1:
@@ -443,14 +425,14 @@ export default class miniSLGrammarParser extends Parser {
 			case 33:
 				this.enterOuterAlt(localctx, 1);
 				{
-				this.state = 95;
+				this.state = 93;
 				this.exp(0);
 				}
 				break;
 			case 17:
 				this.enterOuterAlt(localctx, 2);
 				{
-				this.state = 96;
+				this.state = 94;
 				this.serviceCall();
 				}
 				break;
@@ -492,20 +474,20 @@ export default class miniSLGrammarParser extends Parser {
 			let _alt: number;
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 110;
+			this.state = 108;
 			this._errHandler.sync(this);
-			switch ( this._interp.adaptivePredict(this._input, 9, this._ctx) ) {
+			switch ( this._interp.adaptivePredict(this._input, 6, this._ctx) ) {
 			case 1:
 				{
 				localctx = new ParenExpContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
 
-				this.state = 100;
+				this.state = 98;
 				this.match(miniSLGrammarParser.T__0);
-				this.state = 101;
+				this.state = 99;
 				this.exp(0);
-				this.state = 102;
+				this.state = 100;
 				this.match(miniSLGrammarParser.T__1);
 				}
 				break;
@@ -514,11 +496,11 @@ export default class miniSLGrammarParser extends Parser {
 				localctx = new CallFunContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
-				this.state = 104;
+				this.state = 102;
 				this.match(miniSLGrammarParser.ID);
-				this.state = 105;
+				this.state = 103;
 				this.match(miniSLGrammarParser.T__29);
-				this.state = 106;
+				this.state = 104;
 				this.match(miniSLGrammarParser.ID);
 				}
 				break;
@@ -527,7 +509,7 @@ export default class miniSLGrammarParser extends Parser {
 				localctx = new StringExpContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
-				this.state = 107;
+				this.state = 105;
 				this.match(miniSLGrammarParser.STRING);
 				}
 				break;
@@ -536,7 +518,7 @@ export default class miniSLGrammarParser extends Parser {
 				localctx = new ValExpContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
-				this.state = 108;
+				this.state = 106;
 				this.match(miniSLGrammarParser.NUMBER);
 				}
 				break;
@@ -545,15 +527,15 @@ export default class miniSLGrammarParser extends Parser {
 				localctx = new DerExpContext(this, localctx);
 				this._ctx = localctx;
 				_prevctx = localctx;
-				this.state = 109;
+				this.state = 107;
 				this.match(miniSLGrammarParser.ID);
 				}
 				break;
 			}
 			this._ctx.stop = this._input.LT(-1);
-			this.state = 117;
+			this.state = 115;
 			this._errHandler.sync(this);
-			_alt = this._interp.adaptivePredict(this._input, 10, this._ctx);
+			_alt = this._interp.adaptivePredict(this._input, 7, this._ctx);
 			while (_alt !== 2 && _alt !== ATN.INVALID_ALT_NUMBER) {
 				if (_alt === 1) {
 					if (this._parseListeners != null) {
@@ -564,11 +546,11 @@ export default class miniSLGrammarParser extends Parser {
 					{
 					localctx = new BinExpContext(this, new ExpContext(this, _parentctx, _parentState));
 					this.pushNewRecursionContext(localctx, _startState, miniSLGrammarParser.RULE_exp);
-					this.state = 112;
+					this.state = 110;
 					if (!(this.precpred(this._ctx, 6))) {
 						throw this.createFailedPredicateException("this.precpred(this._ctx, 6)");
 					}
-					this.state = 113;
+					this.state = 111;
 					_la = this._input.LA(1);
 					if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 1073479680) !== 0))) {
 					this._errHandler.recoverInline(this);
@@ -577,14 +559,14 @@ export default class miniSLGrammarParser extends Parser {
 						this._errHandler.reportMatch(this);
 					    this.consume();
 					}
-					this.state = 114;
+					this.state = 112;
 					this.exp(7);
 					}
 					}
 				}
-				this.state = 119;
+				this.state = 117;
 				this._errHandler.sync(this);
-				_alt = this._interp.adaptivePredict(this._input, 10, this._ctx);
+				_alt = this._interp.adaptivePredict(this._input, 7, this._ctx);
 			}
 			}
 		}
@@ -610,21 +592,21 @@ export default class miniSLGrammarParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 120;
+			this.state = 118;
 			this.match(miniSLGrammarParser.ID);
-			this.state = 125;
+			this.state = 123;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
 			while (_la===16) {
 				{
 				{
-				this.state = 121;
+				this.state = 119;
 				this.match(miniSLGrammarParser.T__15);
-				this.state = 122;
+				this.state = 120;
 				this.match(miniSLGrammarParser.ID);
 				}
 				}
-				this.state = 127;
+				this.state = 125;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 			}
@@ -660,44 +642,43 @@ export default class miniSLGrammarParser extends Parser {
 		return true;
 	}
 
-	public static readonly _serializedATN: number[] = [4,1,37,129,2,0,7,0,2,
+	public static readonly _serializedATN: number[] = [4,1,37,127,2,0,7,0,2,
 	1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,7,7,7,1,0,5,0,18,8,0,10,
 	0,12,0,21,9,0,1,0,1,0,1,1,1,1,3,1,27,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,
 	2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,
-	3,1,3,1,3,1,3,3,3,58,8,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,
-	3,1,3,1,3,1,3,3,3,75,8,3,3,3,77,8,3,1,4,1,4,1,4,1,4,1,4,1,4,5,4,85,8,4,
-	10,4,12,4,88,9,4,3,4,90,8,4,1,4,1,4,3,4,94,8,4,1,5,1,5,3,5,98,8,5,1,6,1,
-	6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,111,8,6,1,6,1,6,1,6,5,6,116,8,
-	6,10,6,12,6,119,9,6,1,7,1,7,1,7,5,7,124,8,7,10,7,12,7,127,9,7,1,7,0,1,12,
-	8,0,2,4,6,8,10,12,14,0,1,1,0,18,29,136,0,19,1,0,0,0,2,24,1,0,0,0,4,34,1,
-	0,0,0,6,76,1,0,0,0,8,78,1,0,0,0,10,97,1,0,0,0,12,110,1,0,0,0,14,120,1,0,
-	0,0,16,18,3,4,2,0,17,16,1,0,0,0,18,21,1,0,0,0,19,17,1,0,0,0,19,20,1,0,0,
-	0,20,22,1,0,0,0,21,19,1,0,0,0,22,23,3,2,1,0,23,1,1,0,0,0,24,26,5,1,0,0,
-	25,27,3,14,7,0,26,25,1,0,0,0,26,27,1,0,0,0,27,28,1,0,0,0,28,29,5,2,0,0,
-	29,30,5,3,0,0,30,31,5,4,0,0,31,32,3,6,3,0,32,33,5,5,0,0,33,3,1,0,0,0,34,
-	35,5,6,0,0,35,36,5,31,0,0,36,37,5,7,0,0,37,38,5,1,0,0,38,39,5,8,0,0,39,
-	40,5,2,0,0,40,41,5,9,0,0,41,42,5,8,0,0,42,43,5,10,0,0,43,5,1,0,0,0,44,77,
-	3,8,4,0,45,46,5,11,0,0,46,47,5,1,0,0,47,48,3,10,5,0,48,49,5,2,0,0,49,50,
-	5,4,0,0,50,51,3,6,3,0,51,52,5,5,0,0,52,53,5,12,0,0,53,54,5,4,0,0,54,55,
-	3,6,3,0,55,57,5,5,0,0,56,58,3,6,3,0,57,56,1,0,0,0,57,58,1,0,0,0,58,77,1,
-	0,0,0,59,60,5,13,0,0,60,61,5,1,0,0,61,62,5,31,0,0,62,63,5,14,0,0,63,64,
-	5,15,0,0,64,65,5,1,0,0,65,66,5,32,0,0,66,67,5,16,0,0,67,68,3,12,6,0,68,
-	69,5,2,0,0,69,70,5,2,0,0,70,71,5,4,0,0,71,72,3,6,3,0,72,74,5,5,0,0,73,75,
-	3,6,3,0,74,73,1,0,0,0,74,75,1,0,0,0,75,77,1,0,0,0,76,44,1,0,0,0,76,45,1,
-	0,0,0,76,59,1,0,0,0,77,7,1,0,0,0,78,79,5,17,0,0,79,80,5,31,0,0,80,89,5,
-	1,0,0,81,86,3,12,6,0,82,83,5,16,0,0,83,85,3,12,6,0,84,82,1,0,0,0,85,88,
-	1,0,0,0,86,84,1,0,0,0,86,87,1,0,0,0,87,90,1,0,0,0,88,86,1,0,0,0,89,81,1,
-	0,0,0,89,90,1,0,0,0,90,91,1,0,0,0,91,93,5,2,0,0,92,94,3,6,3,0,93,92,1,0,
-	0,0,93,94,1,0,0,0,94,9,1,0,0,0,95,98,3,12,6,0,96,98,3,8,4,0,97,95,1,0,0,
-	0,97,96,1,0,0,0,98,11,1,0,0,0,99,100,6,6,-1,0,100,101,5,1,0,0,101,102,3,
-	12,6,0,102,103,5,2,0,0,103,111,1,0,0,0,104,105,5,31,0,0,105,106,5,30,0,
-	0,106,111,5,31,0,0,107,111,5,33,0,0,108,111,5,32,0,0,109,111,5,31,0,0,110,
-	99,1,0,0,0,110,104,1,0,0,0,110,107,1,0,0,0,110,108,1,0,0,0,110,109,1,0,
-	0,0,111,117,1,0,0,0,112,113,10,6,0,0,113,114,7,0,0,0,114,116,3,12,6,7,115,
-	112,1,0,0,0,116,119,1,0,0,0,117,115,1,0,0,0,117,118,1,0,0,0,118,13,1,0,
-	0,0,119,117,1,0,0,0,120,125,5,31,0,0,121,122,5,16,0,0,122,124,5,31,0,0,
-	123,121,1,0,0,0,124,127,1,0,0,0,125,123,1,0,0,0,125,126,1,0,0,0,126,15,
-	1,0,0,0,127,125,1,0,0,0,12,19,26,57,74,76,86,89,93,97,110,117,125];
+	3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,
+	3,1,3,1,3,1,3,3,3,76,8,3,1,4,1,4,1,4,1,4,1,4,1,4,5,4,84,8,4,10,4,12,4,87,
+	9,4,3,4,89,8,4,1,4,1,4,1,4,1,5,1,5,3,5,96,8,5,1,6,1,6,1,6,1,6,1,6,1,6,1,
+	6,1,6,1,6,1,6,1,6,3,6,109,8,6,1,6,1,6,1,6,5,6,114,8,6,10,6,12,6,117,9,6,
+	1,7,1,7,1,7,5,7,122,8,7,10,7,12,7,125,9,7,1,7,0,1,12,8,0,2,4,6,8,10,12,
+	14,0,1,1,0,18,29,132,0,19,1,0,0,0,2,24,1,0,0,0,4,34,1,0,0,0,6,75,1,0,0,
+	0,8,77,1,0,0,0,10,95,1,0,0,0,12,108,1,0,0,0,14,118,1,0,0,0,16,18,3,4,2,
+	0,17,16,1,0,0,0,18,21,1,0,0,0,19,17,1,0,0,0,19,20,1,0,0,0,20,22,1,0,0,0,
+	21,19,1,0,0,0,22,23,3,2,1,0,23,1,1,0,0,0,24,26,5,1,0,0,25,27,3,14,7,0,26,
+	25,1,0,0,0,26,27,1,0,0,0,27,28,1,0,0,0,28,29,5,2,0,0,29,30,5,3,0,0,30,31,
+	5,4,0,0,31,32,3,6,3,0,32,33,5,5,0,0,33,3,1,0,0,0,34,35,5,6,0,0,35,36,5,
+	31,0,0,36,37,5,7,0,0,37,38,5,1,0,0,38,39,5,8,0,0,39,40,5,2,0,0,40,41,5,
+	9,0,0,41,42,5,8,0,0,42,43,5,10,0,0,43,5,1,0,0,0,44,76,3,8,4,0,45,46,5,11,
+	0,0,46,47,5,1,0,0,47,48,3,10,5,0,48,49,5,2,0,0,49,50,5,4,0,0,50,51,3,6,
+	3,0,51,52,5,5,0,0,52,53,5,12,0,0,53,54,5,4,0,0,54,55,3,6,3,0,55,56,5,5,
+	0,0,56,57,3,6,3,0,57,76,1,0,0,0,58,59,5,13,0,0,59,60,5,1,0,0,60,61,5,31,
+	0,0,61,62,5,14,0,0,62,63,5,15,0,0,63,64,5,1,0,0,64,65,5,32,0,0,65,66,5,
+	16,0,0,66,67,3,12,6,0,67,68,5,2,0,0,68,69,5,2,0,0,69,70,5,4,0,0,70,71,3,
+	6,3,0,71,72,5,5,0,0,72,73,3,6,3,0,73,76,1,0,0,0,74,76,1,0,0,0,75,44,1,0,
+	0,0,75,45,1,0,0,0,75,58,1,0,0,0,75,74,1,0,0,0,76,7,1,0,0,0,77,78,5,17,0,
+	0,78,79,5,31,0,0,79,88,5,1,0,0,80,85,3,12,6,0,81,82,5,16,0,0,82,84,3,12,
+	6,0,83,81,1,0,0,0,84,87,1,0,0,0,85,83,1,0,0,0,85,86,1,0,0,0,86,89,1,0,0,
+	0,87,85,1,0,0,0,88,80,1,0,0,0,88,89,1,0,0,0,89,90,1,0,0,0,90,91,5,2,0,0,
+	91,92,3,6,3,0,92,9,1,0,0,0,93,96,3,12,6,0,94,96,3,8,4,0,95,93,1,0,0,0,95,
+	94,1,0,0,0,96,11,1,0,0,0,97,98,6,6,-1,0,98,99,5,1,0,0,99,100,3,12,6,0,100,
+	101,5,2,0,0,101,109,1,0,0,0,102,103,5,31,0,0,103,104,5,30,0,0,104,109,5,
+	31,0,0,105,109,5,33,0,0,106,109,5,32,0,0,107,109,5,31,0,0,108,97,1,0,0,
+	0,108,102,1,0,0,0,108,105,1,0,0,0,108,106,1,0,0,0,108,107,1,0,0,0,109,115,
+	1,0,0,0,110,111,10,6,0,0,111,112,7,0,0,0,112,114,3,12,6,7,113,110,1,0,0,
+	0,114,117,1,0,0,0,115,113,1,0,0,0,115,116,1,0,0,0,116,13,1,0,0,0,117,115,
+	1,0,0,0,118,123,5,31,0,0,119,120,5,16,0,0,120,122,5,31,0,0,121,119,1,0,
+	0,0,122,125,1,0,0,0,123,121,1,0,0,0,123,124,1,0,0,0,124,15,1,0,0,0,125,
+	123,1,0,0,0,9,19,26,75,85,88,95,108,115,123];
 
 	private static __ATN: ATN;
 	public static get _ATN(): ATN {
@@ -876,14 +857,14 @@ export class ServiceCallContext extends ParserRuleContext {
 	public ID(): TerminalNode {
 		return this.getToken(miniSLGrammarParser.ID, 0);
 	}
+	public stm(): StmContext {
+		return this.getTypedRuleContext(StmContext, 0) as StmContext;
+	}
 	public exp_list(): ExpContext[] {
 		return this.getTypedRuleContexts(ExpContext) as ExpContext[];
 	}
 	public exp(i: number): ExpContext {
 		return this.getTypedRuleContext(ExpContext, i) as ExpContext;
-	}
-	public stm(): StmContext {
-		return this.getTypedRuleContext(StmContext, 0) as StmContext;
 	}
     public get ruleIndex(): number {
     	return miniSLGrammarParser.RULE_serviceCall;
