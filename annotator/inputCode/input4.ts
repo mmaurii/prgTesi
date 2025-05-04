@@ -33,7 +33,7 @@ function evaluateX(x: number): number {
 
 function evaluateY(y: number): number {
     if (y > 0) {
-        return 0;
+        return z();
     } else {
         return 5;
     }

@@ -30,7 +30,7 @@ function evaluateX(x) {
 }
 function evaluateY(y) {
     if (y > 0) {
-        return 0;
+        return z();
     }
     else {
         return 5;
@@ -47,7 +47,6 @@ function evaluateZ(z) {
 function z() {
     // miniSL: call randomFN()
     return 0;
-    // miniSL: call randomFN()
 }
 main(1, 2, 3, true);
 //# sourceMappingURL=input4.js.map

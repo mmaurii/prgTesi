@@ -14,5 +14,6 @@ interface Config {
         "end": string;
         "function": string;
         "invoke": string;
+        "defCall": string;
     };
 }

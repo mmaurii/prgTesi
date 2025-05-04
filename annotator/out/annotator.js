@@ -61,144 +61,45 @@ class Annotator {
     }
     annotate() {
         return __awaiter(this, arguments, void 0, function* (entryPoint = "main") {
-            var _a, _b, _c, _d, _e;
             if (!this.code) {
                 yield this.loadFile();
             }
             // Parse the code
             this.tree = this.parser.parse(this.code);
-            /*     console.log("AST:\n");
-                console.log(tree.rootNode.toString());
-             */ let indent = "";
-            let annotation = "";
-            const edits = [];
-            const stack = [this.tree.rootNode];
+            console.log("AST:\n");
             console.log(prettyPrint(this.tree.rootNode));
+            let indent = "";
+            let annotation = "";
+            let edits = [];
             // Collect internal functions
             this.collectInternalFunctions(this.tree.rootNode);
             let callAnnotations = new Set();
             // se non ci sono annotazioni non faccio nulla
-            for (const node of this.commentLines) {
-                if (node.text.includes("miniSL:")) {
+            /*     for (const node of this.commentLines) {
+                  if (node.text.includes("miniSL:")) {
                     callAnnotations.add(node.text);
+                  }
                 }
-            }
-            if (callAnnotations.size === 0) {
-                console.log("No annotations found.");
+            
+                if (callAnnotations.size === 0) {
+                  console.log("No annotations found.");
+                  return this.code;
+                } */
+            let callAnnotationNodes = this.findAllMiniSLComments(this.tree.rootNode, this.code);
+            if (callAnnotationNodes.length === 0) {
+                console.log("No call annotations found.");
                 return this.code;
             }
-            let contextParameters;
-            while (stack.length > 0) {
-                const node = stack.pop();
-                if (!node) {
-                    continue;
+            for (const node of callAnnotationNodes) {
+                let path = Annotator.getASTPathToFunctionOrigin(node);
+                let paths = this.findInvocationPaths(entryPoint, this.tree.rootNode);
+                let tree = this.buildExecutionTree(paths);
+                //qui dovresti fare il controllo sull'entry point, se non è presente solleva un errore
+                let root = tree.pop(); // Prendi il nodo radice dell'albero di esecuzione
+                if (!root) {
+                    throw new Error("Error: root node not found in the execution tree.");
                 }
-                if (node.type === "function_declaration") {
-                    const functionName = (_a = node.childForFieldName("name")) === null || _a === void 0 ? void 0 : _a.text;
-                    let functionParams = (_b = node.childForFieldName("parameters")) === null || _b === void 0 ? void 0 : _b.text;
-                    if (functionName && functionParams) {
-                        let params = functionParams.split(",").map(param => param.split(":")[0]);
-                        contextParameters = params;
-                        functionParams = params.join(", ");
-                        if (functionParams.charAt(functionParams.length - 1) !== ")") {
-                            functionParams += ")";
-                        }
-                        let comment;
-                        // Check if the function is main
-                        /*           if (functionName === "main") {
-                                    comment = this.miniSLAnnotatorGenerator.getInvokeStatement(functionName + functionParams) + "\n";
-                                  } else {
-                                  } */
-                        comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
-                        edits.push({ pos: node.startIndex, text: comment });
-                    }
-                    else {
-                        console.error("Error: Function name or parameters not found.");
-                    }
-                }
-                else if (node.type === "if_statement") {
-                    this.contextParameters.clear();
-                    let conditionNode = node.childForFieldName("condition");
-                    let identifiers = this.extractIdentifiersFromCondition(conditionNode);
-                    var condition = conditionNode === null || conditionNode === void 0 ? void 0 : conditionNode.text;
-                    try {
-                        this.getDeclaredValue(identifiers);
-                        for (const [key, value] of this.contextParameters) {
-                            const regex = new RegExp(`(?<![\\w])${key}(?![\\w])`, 'g');
-                            if (value !== null) {
-                                condition = condition.replace(regex, String(value));
-                            }
-                        }
-                    }
-                    catch (error) {
-                        console.error(error.message);
-                    }
-                    if (condition) {
-                        const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition.toString()) + "\n";
-                        edits.push({ pos: node.startIndex, text: comment });
-                    }
-                    else {
-                        console.error("Error: If statement condition not found.");
-                    }
-                }
-                else if (node.type === "else_clause") {
-                    const comment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
-                    edits.push({ pos: node.startIndex, text: comment });
-                }
-                else if (node.type === "for_statement") {
-                    // For statement: get the initializer and condition
-                    // For example: for (initializer; condition; update) { body }
-                    const initializer = node.childForFieldName("initializer");
-                    const condition = node.childForFieldName("condition");
-                    try {
-                        // ottengo le variabili usate nella guardia del for
-                        this.getDeclaredValue([initializer]);
-                        this.getDeclaredValue([condition]);
-                    }
-                    catch (error) {
-                        console.error(error.massage);
-                    }
-                    const startIndex = this.getForStartIndex(initializer);
-                    const endIndex = this.getForEndIndex(condition);
-                    if (startIndex && endIndex) {
-                        const comment = this.miniSLAnnotatorGenerator.getForStatement(startIndex, endIndex) + "\n";
-                        edits.push({ pos: node.startIndex, text: comment });
-                    }
-                    else {
-                        console.error("Error: For statement iterator or end not found.");
-                    }
-                    //controllo che la call non sia dentro un if
-                }
-                else if (node.type === "call_expression" && ((_d = (_c = node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.type) !== "if_statement") {
-                    // Check if the function is a service call          
-                    if (this.commentLines.has(node)) {
-                        let comment = node.text;
-                        if (!comment.includes("miniSL:")) {
-                            const functionNode = node.child(0); // identifier or member_expression
-                            if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
-                                const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
-                                edits.push({ pos: node.startIndex, text: comment });
-                            }
-                        }
-                    }
-                    else {
-                        const functionNode = node.child(0); // identifier or member_expression
-                        if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
-                            const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
-                            edits.push({ pos: node.startIndex, text: comment });
-                        }
-                    }
-                    //controllo che ci sia la chiusura di un un blocco
-                }
-                else if (node.type === '}' && ((_e = node.parent) === null || _e === void 0 ? void 0 : _e.type) === 'statement_block') {
-                    const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1] : undefined;
-                    //controllo che non sia un else, '} else {'
-                    if ((nextNode === null || nextNode === void 0 ? void 0 : nextNode.type) !== 'else_clause') {
-                        const comment = this.miniSLAnnotatorGenerator.getEndStatement() + "\n";
-                        edits.push({ pos: node.startIndex, text: comment });
-                    }
-                }
-                stack.push(...node.children.reverse());
+                edits.push(...this.followPath(root)); // Passa il nodo radice dell'albero di esecuzione
             }
             // Apply edits in reverse order to avoid index shifting
             //    edits.sort((a, b) => a.pos - b.pos);
@@ -207,12 +108,441 @@ class Annotator {
             for (let edit of edits) {
                 annotatedCode = annotatedCode.slice(0, edit.pos) + edit.text + annotatedCode.slice(edit.pos);
             }
-            // print tree
-            //console.log(this.printSyntaxTree(tree.rootNode, this.code));
-            //return edits.map(edit => edit.text).join("");
             return annotatedCode;
         });
     }
+    // Trova il nodo commento che contiene "miniSL: call"
+    findAllMiniSLComments(root, sourceCode) {
+        const result = [];
+        const stack = [root];
+        while (stack.length > 0) {
+            const node = stack.pop();
+            if (node.type === 'comment') {
+                const text = sourceCode.slice(node.startIndex, node.endIndex);
+                if (text.includes('miniSL: call')) {
+                    result.push(node);
+                }
+            }
+            for (let i = node.namedChildCount - 1; i >= 0; i--) {
+                const child = node.namedChild(i);
+                if (child)
+                    stack.push(child);
+            }
+        }
+        return result;
+    }
+    // Funzione che, dato un nodo, risale fino alla dichiarazione di funzione contenente il nodo
+    static getASTPathToFunctionOrigin(node) {
+        const path = [];
+        let current = node;
+        // Tipi di nodi da includere nel percorso
+        const relevantTypes = new Set([
+            'function_declaration', 'method_definition', 'arrow_function',
+            'if_statement', 'for_statement', 'while_statement',
+            'call_expression'
+        ]);
+        while (current) {
+            if (relevantTypes.has(current.type)) {
+                path.push(current);
+            }
+            // Se abbiamo raggiunto la dichiarazione di funzione, smettiamo
+            if (current.type === 'function_declaration' || current.type === 'arrow_function'
+                || current.type === 'method_definition') {
+                break;
+            }
+            current = current.parent;
+        }
+        // Invertiamo per partire dalla funzione verso il nodo
+        return path.reverse();
+    }
+    // Trova tutti i nodi di dichiarazione di funzione nell'AST
+    collectFunctionDeclarations(root) {
+        const functions = [];
+        function traverse(node) {
+            if (node.type === 'function_declaration') {
+                functions.push(node);
+            }
+            for (let i = 0; i < node.namedChildCount; i++) {
+                traverse(node.namedChild(i));
+            }
+        }
+        traverse(root);
+        return functions;
+    }
+    /*   // Estrae il nome di una funzione dato il nodo function_declaration
+      static getFunctionName(fnNode: SyntaxNode): string | null {
+        // In TypeScript grammar, child(1) di function_declaration è l'identificatore del nome
+        const nameNode = fnNode.child(1);
+        return nameNode && nameNode.type === 'identifier' ? nameNode.text : null;
+      }
+    
+      // Estrae il nome di funzione chiamata in un call_expression (se semplice)
+      static getCalledFunctionName(callNode: SyntaxNode): string | null {
+        const callee = callNode.firstChild;
+        if (!callee) return null;
+        if (callee.type === 'identifier') {
+          return callee.text;
+        }
+        // Potrebbe essere un member expression o altro; omesso per semplicità
+        return null;
+      } */
+    static getFunctionName(fnNode) {
+        // Esempio: cerca identifier in function_declaration
+        const identifier = fnNode.childForFieldName("name");
+        return identifier ? identifier.text : null;
+    }
+    static getCalledFunctionName(callNode) {
+        const funcId = callNode.childForFieldName("function");
+        return funcId ? funcId.text : null;
+    }
+    static findCallExpressions(node) {
+        const calls = [];
+        const stack = [node];
+        while (stack.length) {
+            const current = stack.pop();
+            if (current.type === 'call_expression') {
+                calls.push(current);
+            }
+            for (let i = 0; i < current.namedChildCount; i++) {
+                stack.push(current.namedChild(i));
+            }
+        }
+        return calls;
+    }
+    // Trova i percorsi di esecuzione dall'entrypoint alle funzioni miniSL
+    findInvocationPaths(entryName, root) {
+        let paths = [];
+        // (1) Trova nodi miniSL
+        const miniSLComments = this.findAllMiniSLComments(root, this.code);
+        const miniSLFunctions = new Set();
+        for (const commentNode of miniSLComments) {
+            let fnNode = commentNode;
+            while (fnNode && fnNode.type !== 'function_declaration') {
+                fnNode = fnNode.parent;
+            }
+            if (fnNode && fnNode.type === 'function_declaration') {
+                const name = Annotator.getFunctionName(fnNode);
+                if (name)
+                    miniSLFunctions.add(name);
+            }
+        }
+        // (2) Mappa nome -> nodo funzione
+        const funcDecls = this.collectFunctionDeclarations(root);
+        const funcMap = {};
+        for (const fn of funcDecls) {
+            const name = Annotator.getFunctionName(fn);
+            if (name) {
+                funcMap[name] = fn;
+            }
+        }
+        // Avvia la ricerca dall'entrypoint se esiste
+        if (funcMap[entryName]) {
+            const entryFn = funcMap[entryName];
+            // Inserisce all'inizio del percorso il nodo di dichiarazione della funzione di ingresso
+            paths = this.dfs(entryFn, funcMap, miniSLFunctions);
+        }
+        return paths;
+    }
+    // (3) Ricerca ricorsiva dei percorsi
+    dfs(entryFn, funcMap, miniSLFunctions) {
+        let paths = [];
+        const visited = new Set();
+        const stack = [{
+                currentFn: entryFn,
+                currentPath: [entryFn],
+            }];
+        while (stack.length > 0) {
+            const { currentFn, currentPath } = stack.pop();
+            const currentName = Annotator.getFunctionName(currentFn);
+            if (!currentName || visited.has(currentName))
+                continue;
+            visited.add(currentName);
+            const callNodes = Annotator.findCallExpressions(currentFn);
+            for (const call of callNodes) {
+                const calledName = Annotator.getCalledFunctionName(call);
+                if (!calledName)
+                    continue;
+                const pathToCall = Annotator.getASTPathToFunctionOrigin(call); // percorso AST all'interno della funzione
+                const fullPath = [...currentPath, ...pathToCall];
+                if (miniSLFunctions.has(calledName)) {
+                    paths.push(fullPath);
+                }
+                else if (funcMap[calledName] && !visited.has(calledName)) {
+                    stack.push({
+                        currentFn: funcMap[calledName],
+                        currentPath: fullPath,
+                    });
+                }
+            }
+            visited.delete(currentName); // Permette più percorsi alternativi
+        }
+        return paths;
+    }
+    // Percorso dal root fino a un nodo
+    getPathToNode(node) {
+        const path = [];
+        while (node.parent) {
+            const parent = node.parent;
+            const index = parent.namedChildren.indexOf(node);
+            path.unshift([parent.type, index]);
+            node = parent;
+        }
+        return path;
+    }
+    buildExecutionTree(paths) {
+        const rootNodes = [];
+        for (const path of paths) {
+            let currentLevel = rootNodes;
+            for (const node of path) {
+                let existing = currentLevel.find(n => n.node.id === node.id);
+                if (!existing) {
+                    existing = {
+                        node,
+                        children: [],
+                    };
+                    currentLevel.push(existing);
+                }
+                currentLevel = existing.children;
+            }
+        }
+        return rootNodes;
+    }
+    followPath(root) {
+        var _a, _b, _c, _d, _e;
+        const edits = [];
+        const stack = [root];
+        let contextParameters;
+        while (stack.length > 0) {
+            const currentExecutionTreeNode = stack.pop();
+            const node = currentExecutionTreeNode.node;
+            if (!node) {
+                continue;
+            }
+            if (node.type === "function_declaration") {
+                const functionName = (_a = node.childForFieldName("name")) === null || _a === void 0 ? void 0 : _a.text;
+                let functionParams = (_b = node.childForFieldName("parameters")) === null || _b === void 0 ? void 0 : _b.text;
+                if (functionName && functionParams) {
+                    let params = functionParams.split(",").map(param => param.split(":")[0]);
+                    contextParameters = params;
+                    functionParams = params.join(", ");
+                    if (functionParams.charAt(functionParams.length - 1) !== ")") {
+                        functionParams += ")";
+                    }
+                    let comment;
+                    // Check if the function is main
+                    /*           if (functionName === "main") {
+                                comment = this.miniSLAnnotatorGenerator.getInvokeStatement(functionName + functionParams) + "\n";
+                              } else {
+                              } */
+                    comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
+                    edits.push({ pos: node.startIndex, text: comment });
+                }
+                else {
+                    console.error("Error: Function name or parameters not found.");
+                }
+            }
+            else if (node.type === "if_statement") {
+                this.contextParameters.clear();
+                let conditionNode = node.childForFieldName("condition");
+                let identifiers = this.extractIdentifiersFromCondition(conditionNode);
+                var condition = conditionNode === null || conditionNode === void 0 ? void 0 : conditionNode.text;
+                try {
+                    this.getDeclaredValue(identifiers);
+                    for (const [key, value] of this.contextParameters) {
+                        const regex = new RegExp(`(?<![\\w])${key}(?![\\w])`, 'g');
+                        if (value !== null) {
+                            condition = condition.replace(regex, String(value));
+                        }
+                    }
+                }
+                catch (error) {
+                    console.error(error.message);
+                }
+                if (condition) {
+                    const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition.toString()) + "\n";
+                    edits.push({ pos: node.startIndex, text: comment });
+                }
+                else {
+                    console.error("Error: If statement condition not found.");
+                }
+            }
+            else if (node.type === "else_clause") {
+                const comment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
+                edits.push({ pos: node.startIndex, text: comment });
+            }
+            else if (node.type === "for_statement") {
+                // For statement: get the initializer and condition
+                // For example: for (initializer; condition; update) { body }
+                const initializer = node.childForFieldName("initializer");
+                const condition = node.childForFieldName("condition");
+                try {
+                    // ottengo le variabili usate nella guardia del for
+                    this.getDeclaredValue([initializer]);
+                    this.getDeclaredValue([condition]);
+                }
+                catch (error) {
+                    console.error(error.massage);
+                }
+                const startIndex = this.getForStartIndex(initializer);
+                const endIndex = this.getForEndIndex(condition);
+                if (startIndex && endIndex) {
+                    const comment = this.miniSLAnnotatorGenerator.getForStatement(startIndex, endIndex) + "\n";
+                    edits.push({ pos: node.startIndex, text: comment });
+                }
+                else {
+                    console.error("Error: For statement iterator or end not found.");
+                }
+                //controllo che la call non sia dentro un if
+            }
+            else if (node.type === "call_expression" && ((_d = (_c = node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.type) !== "if_statement") {
+                // Check if the function is a service call          
+                if (this.commentLines.has(node)) {
+                    let comment = node.text;
+                    if (!comment.includes("miniSL:")) {
+                        const functionNode = node.child(0); // identifier or member_expression
+                        if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+                            const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                            edits.push({ pos: node.startIndex, text: comment });
+                        }
+                    }
+                }
+                else {
+                    const functionNode = node.child(0); // identifier or member_expression
+                    if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+                        const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                        edits.push({ pos: node.startIndex, text: comment });
+                    }
+                }
+                //controllo che ci sia la chiusura di un un blocco
+            }
+            else if (node.type === '}' && ((_e = node.parent) === null || _e === void 0 ? void 0 : _e.type) === 'statement_block') {
+                const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1].node : undefined;
+                //controllo che non sia un else, '} else {'
+                if ((nextNode === null || nextNode === void 0 ? void 0 : nextNode.type) !== 'else_clause') {
+                    const comment = this.miniSLAnnotatorGenerator.getEndStatement() + "\n";
+                    edits.push({ pos: node.startIndex, text: comment });
+                }
+            }
+            stack.push(...currentExecutionTreeNode.children.reverse());
+        }
+        return edits;
+    }
+    /*   followPath(rootNode: SyntaxNode): { pos: number; text: string }[] {
+        const edits: { pos: number; text: string }[] = [];
+        const stack: SyntaxNode[] = [rootNode];
+        let contextParameters: string[];
+    
+        while (stack.length > 0) {
+          const node = stack.pop();
+          if (!node) {
+            continue;
+          }
+    
+          if (node.type === "function_declaration") {
+            const functionName = node.childForFieldName("name")?.text;
+            let functionParams = node.childForFieldName("parameters")?.text;
+    
+            if (functionName && functionParams) {
+              let params = functionParams.split(",").map(param => param.split(":")[0]);
+              contextParameters = params;
+              functionParams = params.join(", ");
+              if (functionParams.charAt(functionParams.length - 1) !== ")") {
+                functionParams += ")";
+              }
+    
+              let comment;
+              // Check if the function is main
+              comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
+              edits.push({ pos: node.startIndex, text: comment });
+            } else {
+              console.error("Error: Function name or parameters not found.");
+            }
+          } else if (node.type === "if_statement") {
+            this.contextParameters.clear();
+            let conditionNode = node.childForFieldName("condition");
+            let identifiers = this.extractIdentifiersFromCondition(conditionNode);
+            var condition: String = conditionNode?.text;
+    
+            try {
+              this.getDeclaredValue(identifiers);
+              for (const [key, value] of this.contextParameters) {
+                const regex = new RegExp(`(?<![\\w])${key}(?![\\w])`, 'g');
+                if (value !== null) {
+                  condition = condition.replace(regex, String(value));
+                }
+              }
+            } catch (error) {
+              console.error(error.message);
+            }
+    
+            if (condition) {
+              const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition.toString()) + "\n";
+              edits.push({ pos: node.startIndex, text: comment });
+            } else {
+              console.error("Error: If statement condition not found.");
+            }
+          } else if (node.type === "else_clause") {
+            const comment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
+            edits.push({ pos: node.startIndex, text: comment });
+          } else if (node.type === "for_statement") {
+    
+            // For statement: get the initializer and condition
+            // For example: for (initializer; condition; update) { body }
+            const initializer = node.childForFieldName("initializer");
+            const condition = node.childForFieldName("condition");
+    
+            try {
+              // ottengo le variabili usate nella guardia del for
+              this.getDeclaredValue([initializer]);
+              this.getDeclaredValue([condition]);
+    
+            } catch (error) {
+              console.error(error.massage);
+            }
+            const startIndex = this.getForStartIndex(initializer);
+            const endIndex = this.getForEndIndex(condition);
+            if (startIndex && endIndex) {
+              const comment = this.miniSLAnnotatorGenerator.getForStatement(startIndex, endIndex) + "\n";
+              edits.push({ pos: node.startIndex, text: comment });
+            } else {
+              console.error("Error: For statement iterator or end not found.");
+            }
+    
+            //controllo che la call non sia dentro un if
+          } else if (node.type === "call_expression" && node.parent?.parent?.type !== "if_statement") {
+            // Check if the function is a service call
+            if (this.commentLines.has(node)) {
+              let comment = node.text;
+              if (!comment.includes("miniSL:")) {
+                const functionNode = node.child(0); // identifier or member_expression
+                if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+                  const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                  edits.push({ pos: node.startIndex, text: comment });
+                }
+              }
+            } else {
+              const functionNode = node.child(0); // identifier or member_expression
+              if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+                const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
+                edits.push({ pos: node.startIndex, text: comment });
+              }
+            }
+    
+            //controllo che ci sia la chiusura di un un blocco
+          } else if (node.type === '}' && node.parent?.type === 'statement_block') {
+            const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1] : undefined;
+            //controllo che non sia un else, '} else {'
+            if (nextNode?.type !== 'else_clause') {
+              const comment = this.miniSLAnnotatorGenerator.getEndStatement() + "\n";
+              edits.push({ pos: node.startIndex, text: comment });
+            }
+          }
+    
+          stack.push(...node.children.reverse());
+        }
+    
+        return edits;
+      } */
     /*   extractIdentifiers(nodes: SyntaxNode[], contextParameters: string[]): Map<string, any> {
         let result = new Map<string, any>();
     
