@@ -29,8 +29,15 @@ function evaluateX(x) {
     }
 }
 function evaluateY(y) {
+    /*     if (y > 0) {
+            y = 1 + y; // sollevo eccezione
+        } */
+    y = 1 + y;
     if (y > 0) {
-        return z();
+        y = 1 + y; // da gestire
+        if (y > 0) {
+            return z();
+        }
     }
     else {
         return 5;

@@ -126,8 +126,9 @@ class Annotator {
             }
             for (let i = node.namedChildCount - 1; i >= 0; i--) {
                 const child = node.namedChild(i);
-                if (child)
+                if (child) {
                     stack.push(child);
+                }
             }
         }
         return result;
@@ -252,8 +253,9 @@ class Annotator {
             }
             if (fnNode && fnNode.type === 'function_declaration') {
                 const name = Annotator.getFunctionName(fnNode);
-                if (name)
+                if (name) {
                     miniSLFunctions.add(name);
+                }
             }
         }
         // (2) Mappa nome -> nodo funzione
@@ -284,14 +286,16 @@ class Annotator {
         while (stack.length > 0) {
             const { currentFn, currentPath } = stack.pop();
             const currentName = Annotator.getFunctionName(currentFn);
-            if (!currentName || visited.has(currentName))
+            if (!currentName || visited.has(currentName)) {
                 continue;
+            }
             visited.add(currentName);
             const callNodes = Annotator.findCallExpressions(currentFn);
             for (const call of callNodes) {
                 const calledName = Annotator.getCalledFunctionName(call);
-                if (!calledName)
+                if (!calledName) {
                     continue;
+                }
                 const pathToCall = Annotator.getASTPathToFunctionOrigin(call); // percorso AST all'interno della funzione
                 const fullPath = [...currentPath, ...pathToCall];
                 if (miniSLFunctions.has(calledName)) {
@@ -610,8 +614,9 @@ class Annotator {
         const node = nodes[0];
         let value = null;
         let isParameter = false;
-        if (!node || node.type !== "identifier")
+        if (!node || node.type !== "identifier") {
             throw new Error("Error: node is not an identifier.");
+        }
         const name = node.text;
         const line = node.startPosition.row;
         // Risali alla function_declaration più vicina
@@ -619,8 +624,9 @@ class Annotator {
         while (funcNode && funcNode.type !== "function_declaration") {
             funcNode = funcNode.parent;
         }
-        if (!funcNode)
+        if (!funcNode) {
             throw new Error("Error: function not found.");
+        }
         // Controlla se è un parametro della funzione
         const paramList = funcNode.childForFieldName("parameters");
         const nodeNames = nodes.map(n => n.text);
@@ -636,24 +642,46 @@ class Annotator {
         }
         // Scansiona il corpo della funzione per cercare assegnazioni precedenti
         const body = funcNode.childForFieldName("body");
-        if (!body)
+        if (!body) {
             throw new Error("Error: function body not found.");
-        for (const n of nodes) {
-            this.scan(body, n.text, n.startPosition.row);
         }
-        if (this.contextParameters.size !== nodes.length)
+        for (const n of nodes) {
+            this.scan(body, n);
+        }
+        if (this.contextParameters.size !== nodes.length) {
             throw new Error("Error: not all the variables were found.");
+        }
     }
-    scan(node, name, line) {
-        if (node.startPosition.row >= line)
+    isAncestorOfParent(ancestorNode, descendantNode) {
+        let current = descendantNode;
+        while (current !== null) {
+            if (current.id === ancestorNode.id) {
+                return true;
+            }
+            current = current.parent;
+        }
+        return false;
+    }
+    scan(node, last) {
+        if (node.startPosition.row >= last.startPosition.row) {
             return;
+        }
+        if (node.type === "if_statement" || node.type === "for_statement" || node.type === "while_statement") {
+            if (!this.isAncestorOfParent(node, last)) {
+                let regex = new RegExp(`\\b(?:let|const|var)?\\s*\\b(${last.text})\\b\\s*(?==)|\\b(${last.text})\\b\\s*(?==)`);
+                let assignmentInStatement = node.text.match(regex);
+                if (assignmentInStatement) {
+                    throw new Error(`Error: ${last.text} found in if, for or while. I can't handle this case.`);
+                }
+            }
+        }
         if (node.type === "lexical_declaration" || node.type === "variable_declaration") {
             for (const declarator of node.namedChildren) {
                 const nameNode = declarator.childForFieldName("name");
                 const valueNode = declarator.childForFieldName("value");
-                if ((nameNode === null || nameNode === void 0 ? void 0 : nameNode.text) === name && valueNode) {
-                    if (this.isSafe(valueNode)) {
-                        this.contextParameters.set(name, this.extractLiteral(valueNode));
+                if ((nameNode === null || nameNode === void 0 ? void 0 : nameNode.text) === last.text && valueNode) {
+                    if (this.isSafe(valueNode, last)) {
+                        this.contextParameters.set(last.text, this.extractLiteral(valueNode));
                     }
                 }
             }
@@ -661,29 +689,43 @@ class Annotator {
         if (node.type === "assignment_expression") {
             const left = node.childForFieldName("left");
             const right = node.childForFieldName("right");
-            if ((left === null || left === void 0 ? void 0 : left.type) === "identifier" && left.text === name && right) {
-                if (this.isSafe(right)) {
-                    this.contextParameters.set(name, this.extractLiteral(right));
+            if ((left === null || left === void 0 ? void 0 : left.type) === "identifier" && left.text === last.text && right) {
+                if (this.isSafe(right, last)) {
+                    this.contextParameters.set(last.text, this.extractLiteral(right));
                 }
             }
         }
         // Scansiona i figli del nodo corrente, ma è un problema perchè potrei avere valori multipli, risolvibile con una proprietà forse
         for (const child of node.namedChildren) {
-            this.scan(child, name, line);
+            this.scan(child, last);
         }
     }
-    isSafe(node) {
+    isSafe(node, safe) {
         const invalidTypes = [
             "arrow_function",
             "function",
             "function_expression",
             "call_expression",
-            "identifier"
         ];
-        return !invalidTypes.includes(node.type) &&
-            !node.descendantsOfType("call_expression").length &&
-            !node.descendantsOfType("identifier").length &&
-            !node.descendantsOfType("member_expression").length;
+        let descendantNodes = node.descendantsOfType("identifier");
+        if (descendantNodes.every(node => node.text === safe.text)) {
+            return !invalidTypes.includes(node.type) &&
+                !node.descendantsOfType("call_expression").length &&
+                !node.descendantsOfType("member_expression").length &&
+                !node.descendantsOfType("function_expression").length &&
+                !node.descendantsOfType("arrow_function").length &&
+                !node.descendantsOfType("function").length;
+        }
+        else {
+            invalidTypes.push("identifier");
+            return !invalidTypes.includes(node.type) &&
+                !node.descendantsOfType("call_expression").length &&
+                !node.descendantsOfType("identifier").length &&
+                !node.descendantsOfType("member_expression").length &&
+                !node.descendantsOfType("function_expression").length &&
+                !node.descendantsOfType("arrow_function").length &&
+                !node.descendantsOfType("function").length;
+        }
     }
     extractLiteral(node) {
         switch (node.type) {
@@ -725,8 +767,9 @@ class Annotator {
      */
     evaluateExpression(node) {
         var _a, _b;
-        if (!node)
+        if (!node) {
             return null;
+        }
         switch (node.type) {
             case "number":
                 return Number(node.text);
@@ -745,8 +788,9 @@ class Annotator {
                 const left = this.evaluateExpression(node.childForFieldName("left"));
                 const right = this.evaluateExpression(node.childForFieldName("right"));
                 const operator = (_b = (_a = node.childForFieldName("operator")) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : this.extractOperator(node);
-                if (left === null || right === null)
+                if (left === null || right === null) {
                     return null;
+                }
                 try {
                     switch (operator) {
                         case "+":
@@ -791,8 +835,9 @@ class Annotator {
         // Some parsers (like TypeScript) do not expose 'operator' as a field
         const children = node.children;
         for (const child of children) {
-            if (child.isNamed)
+            if (child.isNamed) {
                 continue;
+            }
             return child.text.trim(); // the operator is usually the unnamed child
         }
         return "";
@@ -815,16 +860,18 @@ class Annotator {
             if (currentNode.type === "function_declaration") {
                 const nameNode = currentNode.childForFieldName("name");
                 currentFunction = nameNode.text;
-                if (nameNode)
+                if (nameNode) {
                     this.internalFunctions.set(nameNode.text, []);
+                }
             }
             stack.push(...currentNode.children.reverse());
         }
     }
     getIndexInParent(node) {
         const parent = node.parent;
-        if (!parent)
+        if (!parent) {
             return -1;
+        }
         for (let i = 0; i < parent.childCount; i++) {
             const child = parent.child(i);
             if (child === node) {
@@ -872,11 +919,13 @@ class Annotator {
         throw new Error("Error: initializer in For statement not found.");
     }
     isFunctionCall(node) {
-        if (!node)
+        if (!node) {
             return false;
+        }
         // Caso base: è una call
-        if (node.type === "call_expression")
+        if (node.type === "call_expression") {
             return true;
+        }
         // Caso annidato: x = a + myFunc()
         for (let i = 0; i < node.namedChildCount; i++) {
             if (this.isFunctionCall(node.namedChild(i))) {

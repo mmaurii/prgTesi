@@ -2,15 +2,15 @@ var pippo = true;
 
 function main(x: number, y: number, z: number, type: boolean): void {
     let a;
-/*     a = 1+a;
-    a = evaluateX;
-    a = 1+evaluateX(x);
-    a = 1+x.toString();
-    a = 1+a.x;
-    a = a===a;
-    a = 1===1; */
-    a = 1+5;
-    if (a>0) {
+    /*     a = 1+a;
+        a = evaluateX;
+        a = 1+evaluateX(x);
+        a = 1+x.toString();
+        a = 1+a.x;
+        a = a===a;
+        a = 1===1; */
+    a = 1 + 5;
+    if (a > 0) {
         //questo è un commento
         evaluateX(x);
         evaluateY(z);
@@ -32,8 +32,17 @@ function evaluateX(x: number): number {
 }
 
 function evaluateY(y: number): number {
+/*     if (y > 0) {
+        y = 1 + y; // sollevo eccezione
+    } */
+
+    y= 1 + y; 
+    
     if (y > 0) {
-        return z();
+        y = 1 + y; // da gestire
+        if(y > 0) {
+            return z();
+        }
     } else {
         return 5;
     }
