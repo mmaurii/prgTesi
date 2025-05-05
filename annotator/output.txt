@@ -1,7 +1,6 @@
 var pippo = true;
 
 // miniSL: function main(x,  y,  z,  type)
-// miniSL: function main(x,  y,  z,  type)
 function main(x: number, y: number, z: number, type: boolean): void {
     let a;
 /*     a = 1+a;
@@ -18,13 +17,16 @@ if (a>0) {
         evaluateX(x);
         // miniSL: invoke evaluateY(z)
 evaluateY(z);
-    } else {
+    } // miniSL: else
+else {
         evaluateZ(z);
-    }
+    // miniSL: end
+}
 
     //questo è un commento
     evaluateX(x);
 
+// miniSL: end
 }
 
 function evaluateX(x: number): number {
@@ -41,9 +43,12 @@ function evaluateY(y: number): number {
 if (y > 0) {
         return // miniSL: invoke z()
 z();
-    } else {
+    } // miniSL: else
+else {
         return 5;
-    }
+    // miniSL: end
+}
+// miniSL: end
 }
 
 function evaluateZ(z: number): number {
@@ -55,9 +60,11 @@ function evaluateZ(z: number): number {
 
 }
 
+// miniSL: function z()
 function z(): number {
     // miniSL: call randomFN()
     return 0;
+// miniSL: end
 }
 
 main(1, 2, 3, true);

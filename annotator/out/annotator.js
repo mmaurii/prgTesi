@@ -93,6 +93,7 @@ class Annotator {
             for (const node of callAnnotationNodes) {
                 let path = Annotator.getASTPathToFunctionOrigin(node);
                 let paths = this.findInvocationPaths(entryPoint, this.tree.rootNode);
+                paths = this.mergeInvocationAndMiniSLPaths(paths, path);
                 let tree = this.buildExecutionTree(paths);
                 //qui dovresti fare il controllo sull'entry point, se non è presente solleva un errore
                 let root = tree.pop(); // Prendi il nodo radice dell'albero di esecuzione
@@ -141,19 +142,48 @@ class Annotator {
             'if_statement', 'for_statement', 'while_statement',
             'call_expression'
         ]);
-        while (current) {
-            if (relevantTypes.has(current.type)) {
+        /*     while (current) {
+              if (relevantTypes.has(current.type)) {
                 path.push(current);
-            }
-            // Se abbiamo raggiunto la dichiarazione di funzione, smettiamo
-            if (current.type === 'function_declaration' || current.type === 'arrow_function'
+              }
+              // Se abbiamo raggiunto la dichiarazione di funzione, smettiamo
+              if (current.type === 'function_declaration' || current.type === 'arrow_function'
                 || current.type === 'method_definition') {
                 break;
+              }
+              current = current.parent;
+            }
+            // Invertiamo per partire dalla funzione verso il nodo
+            return path.reverse(); */
+        while (current) {
+            if (relevantTypes.has(current.type)) {
+                path.unshift(current);
+                const isIf = current.type === 'if_statement';
+                const hasElse = !!current.childForFieldName("alternative");
+                // Blocchi tipo if/for/while
+                const block = current.childForFieldName("body") || current.childForFieldName("consequence");
+                if (block && block.type === 'statement_block') {
+                    const closingBrace = block.lastChild;
+                    if (closingBrace && closingBrace.type === '}' && (!isIf || !hasElse)) {
+                        // Aggiungi la } solo se:
+                        // - non è un if
+                        // - oppure è un if senza else
+                        path.unshift(closingBrace);
+                    }
+                }
+                // Includi il blocco "else" se presente
+                let alt = current.childForFieldName("alternative");
+                if (alt && alt.type === 'else_clause') {
+                    const altClosingBrace = alt.lastChild.lastChild;
+                    if (altClosingBrace && altClosingBrace.type === '}') {
+                        path.unshift(altClosingBrace);
+                    }
+                    path.unshift(alt); // Inserisci il blocco else
+                }
             }
             current = current.parent;
         }
-        // Invertiamo per partire dalla funzione verso il nodo
-        return path.reverse();
+        return path;
     }
     // Trova tutti i nodi di dichiarazione di funzione nell'AST
     collectFunctionDeclarations(root) {
@@ -249,7 +279,7 @@ class Annotator {
         const visited = new Set();
         const stack = [{
                 currentFn: entryFn,
-                currentPath: [entryFn],
+                currentPath: [],
             }];
         while (stack.length > 0) {
             const { currentFn, currentPath } = stack.pop();
@@ -289,6 +319,21 @@ class Annotator {
         }
         return path;
     }
+    mergeInvocationAndMiniSLPaths(invocationPaths, miniSLPath) {
+        const mergedPaths = [];
+        for (const invocation of invocationPaths) {
+            const lastInvocationNode = invocation[invocation.length - 1];
+            const firstMiniSLNode = miniSLPath[0];
+            const hasOverlap = lastInvocationNode && firstMiniSLNode &&
+                lastInvocationNode.id === firstMiniSLNode.id;
+            // Evita ripetizione del nodo di giunzione
+            const merged = hasOverlap
+                ? [...invocation, ...miniSLPath.slice(1)]
+                : [...invocation, ...miniSLPath];
+            mergedPaths.push(merged);
+        }
+        return mergedPaths;
+    }
     buildExecutionTree(paths) {
         const rootNodes = [];
         for (const path of paths) {
@@ -308,7 +353,7 @@ class Annotator {
         return rootNodes;
     }
     followPath(root) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         const edits = [];
         const stack = [root];
         let contextParameters;
@@ -415,7 +460,7 @@ class Annotator {
                 }
                 //controllo che ci sia la chiusura di un un blocco
             }
-            else if (node.type === '}' && ((_e = node.parent) === null || _e === void 0 ? void 0 : _e.type) === 'statement_block') {
+            else if (node.type === '}') { // && node.parent?.type === 'statement_block'
                 const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1].node : undefined;
                 //controllo che non sia un else, '} else {'
                 if ((nextNode === null || nextNode === void 0 ? void 0 : nextNode.type) !== 'else_clause') {
@@ -431,17 +476,17 @@ class Annotator {
         const edits: { pos: number; text: string }[] = [];
         const stack: SyntaxNode[] = [rootNode];
         let contextParameters: string[];
-    
+     
         while (stack.length > 0) {
           const node = stack.pop();
           if (!node) {
             continue;
           }
-    
+     
           if (node.type === "function_declaration") {
             const functionName = node.childForFieldName("name")?.text;
             let functionParams = node.childForFieldName("parameters")?.text;
-    
+     
             if (functionName && functionParams) {
               let params = functionParams.split(",").map(param => param.split(":")[0]);
               contextParameters = params;
@@ -449,7 +494,7 @@ class Annotator {
               if (functionParams.charAt(functionParams.length - 1) !== ")") {
                 functionParams += ")";
               }
-    
+     
               let comment;
               // Check if the function is main
               comment = this.miniSLAnnotatorGenerator.getFunctionStatement(functionName + functionParams) + "\n";
@@ -462,7 +507,7 @@ class Annotator {
             let conditionNode = node.childForFieldName("condition");
             let identifiers = this.extractIdentifiersFromCondition(conditionNode);
             var condition: String = conditionNode?.text;
-    
+     
             try {
               this.getDeclaredValue(identifiers);
               for (const [key, value] of this.contextParameters) {
@@ -474,7 +519,7 @@ class Annotator {
             } catch (error) {
               console.error(error.message);
             }
-    
+     
             if (condition) {
               const comment = this.miniSLAnnotatorGenerator.getIfStatement(condition.toString()) + "\n";
               edits.push({ pos: node.startIndex, text: comment });
@@ -485,17 +530,17 @@ class Annotator {
             const comment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
             edits.push({ pos: node.startIndex, text: comment });
           } else if (node.type === "for_statement") {
-    
+     
             // For statement: get the initializer and condition
             // For example: for (initializer; condition; update) { body }
             const initializer = node.childForFieldName("initializer");
             const condition = node.childForFieldName("condition");
-    
+     
             try {
               // ottengo le variabili usate nella guardia del for
               this.getDeclaredValue([initializer]);
               this.getDeclaredValue([condition]);
-    
+     
             } catch (error) {
               console.error(error.massage);
             }
@@ -507,7 +552,7 @@ class Annotator {
             } else {
               console.error("Error: For statement iterator or end not found.");
             }
-    
+     
             //controllo che la call non sia dentro un if
           } else if (node.type === "call_expression" && node.parent?.parent?.type !== "if_statement") {
             // Check if the function is a service call
@@ -527,7 +572,7 @@ class Annotator {
                 edits.push({ pos: node.startIndex, text: comment });
               }
             }
-    
+     
             //controllo che ci sia la chiusura di un un blocco
           } else if (node.type === '}' && node.parent?.type === 'statement_block') {
             const nextNode = stack.length - 1 >= 0 ? stack[stack.length - 1] : undefined;
@@ -537,15 +582,15 @@ class Annotator {
               edits.push({ pos: node.startIndex, text: comment });
             }
           }
-    
+     
           stack.push(...node.children.reverse());
         }
-    
+     
         return edits;
       } */
     /*   extractIdentifiers(nodes: SyntaxNode[], contextParameters: string[]): Map<string, any> {
         let result = new Map<string, any>();
-    
+     
         for (const node of nodes) {
           if (node.type === "identifier") {
             const value = this.getDeclaredValue(nodes);
@@ -554,7 +599,7 @@ class Annotator {
             }
             result.set(node.text, value);
           }
-    
+     
           for (const child of node.namedChildren) {
             this.extractIdentifiers([child], contextParameters).forEach((key, value) => { result.set(key, value) });
           }

@@ -1,68 +1,74 @@
 namespace miniSLAnnotated4 {
+    var pippo = true;
+
     // miniSL: function main(x,  y,  z,  type)
     function main(x: number, y: number, z: number, type: boolean): void {
-        // miniSL: if(type)
-        if (type) {
-            // miniSL: invoke evaluateX(x)
+        let a;
+    /*     a = 1+a;
+        a = evaluateX;
+        a = 1+evaluateX(x);
+        a = 1+x.toString();
+        a = 1+a.x;
+        a = a===a;
+        a = 1===1; */
+        a = 1+5;
+        // miniSL: if(6>0)
+    if (a>0) {
+            //questo è un commento
             evaluateX(x);
             // miniSL: invoke evaluateY(z)
-            evaluateY(z);
-        }// miniSL: else
-        else {
-            // miniSL: invoke evaluateZ(z)
+    evaluateY(z);
+        } // miniSL: else
+    else {
             evaluateZ(z);
-            // miniSL: end
-        }
         // miniSL: end
     }
-
-    // miniSL: function evaluateX(x)
+    
+        //questo è un commento
+        evaluateX(x);
+    
+    // miniSL: end
+    }
+    
     function evaluateX(x: number): number {
-        // miniSL: if(x > 0)
         if (x > 0) {
             return 0;
-        }// miniSL: else
-        else {
+        } else {
             return 5;
-            // miniSL: end
         }
-        // miniSL: end
     }
-
+    
     // miniSL: function evaluateY(y)
     function evaluateY(y: number): number {
         // miniSL: if(y > 0)
-        if (y > 0) {
-            return 0;
-        }// miniSL: else
-        else {
+    if (y > 0) {
+            return // miniSL: invoke z()
+    z();
+        } // miniSL: else
+    else {
             return 5;
-            // miniSL: end
-        }
         // miniSL: end
     }
-
-    // miniSL: function evaluateZ(z)
+    // miniSL: end
+    }
+    
     function evaluateZ(z: number): number {
-        // miniSL: if(z > 0)
         if (z > 0) {
             return 0;
-        }// miniSL: else
-        else {
+        } else {
             return 5;
-            // miniSL: end
         }
-
-        // miniSL: end
+    
     }
-
+    
     // miniSL: function z()
     function z(): number {
         // miniSL: call randomFN()
         return 0;
-        // miniSL: end
+    // miniSL: end
     }
 
-    // miniSL: invoke main(1,2,3, true)
+    //scritto a mano da me
+    // miniSL: invoke main(1, 2, 3, true)
     main(1, 2, 3, true);
 }
