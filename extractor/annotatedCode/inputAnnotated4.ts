@@ -72,6 +72,5 @@ namespace miniSLAnnotated4 {
     }
 
     //scritto a mano da me
-    // miniSL: invoke main(1, 2, 3, true)
     main(1, 2, 3, true);
 }

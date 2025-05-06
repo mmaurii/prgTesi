@@ -39,7 +39,7 @@ var miniSLAnnotated4;
     function evaluateY(y) {
         // miniSL: if(y > 0)
         if (y > 0) {
-            return; // miniSL: invoke z()
+            return; // miniSL: invoke z() 
             z();
         } // miniSL: else
         else {
@@ -63,7 +63,6 @@ var miniSLAnnotated4;
         // miniSL: end
     }
     //scritto a mano da me
-    // miniSL: invoke main(1, 2, 3, true)
     main(1, 2, 3, true);
 })(miniSLAnnotated4 || (miniSLAnnotated4 = {}));
 //# sourceMappingURL=inputAnnotated4.js.map

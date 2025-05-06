@@ -680,8 +680,11 @@ class Annotator {
                 const nameNode = declarator.childForFieldName("name");
                 const valueNode = declarator.childForFieldName("value");
                 if ((nameNode === null || nameNode === void 0 ? void 0 : nameNode.text) === last.text && valueNode) {
-                    if (this.isSafe(valueNode, last)) {
+                    if (this.isSafe(valueNode)) { //separa i due casi di assegnazione presenti in isSafe
                         this.contextParameters.set(last.text, this.extractLiteral(valueNode));
+                    }
+                    else if (this.isSafe(valueNode, last)) {
+                        this.contextParameters.set(last.text, valueNode.text);
                     }
                 }
             }
@@ -690,8 +693,11 @@ class Annotator {
             const left = node.childForFieldName("left");
             const right = node.childForFieldName("right");
             if ((left === null || left === void 0 ? void 0 : left.type) === "identifier" && left.text === last.text && right) {
-                if (this.isSafe(right, last)) {
+                if (this.isSafe(right)) {
                     this.contextParameters.set(last.text, this.extractLiteral(right));
+                }
+                else if (this.isSafe(right, last)) {
+                    this.contextParameters.set(last.text, right.text);
                 }
             }
         }
@@ -700,7 +706,7 @@ class Annotator {
             this.scan(child, last);
         }
     }
-    isSafe(node, safe) {
+    isSafe(node, safe = null) {
         const invalidTypes = [
             "arrow_function",
             "function",
@@ -708,7 +714,7 @@ class Annotator {
             "call_expression",
         ];
         let descendantNodes = node.descendantsOfType("identifier");
-        if (descendantNodes.every(node => node.text === safe.text)) {
+        if (descendantNodes.every(node => node.text === (safe === null || safe === void 0 ? void 0 : safe.text))) {
             return !invalidTypes.includes(node.type) &&
                 !node.descendantsOfType("call_expression").length &&
                 !node.descendantsOfType("member_expression").length &&

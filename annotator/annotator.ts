@@ -761,8 +761,10 @@ class Annotator {
         const nameNode = declarator.childForFieldName("name");
         const valueNode = declarator.childForFieldName("value");
         if (nameNode?.text === last.text && valueNode) {
-          if (this.isSafe(valueNode, last)) {
+          if (this.isSafe(valueNode)) {//separa i due casi di assegnazione presenti in isSafe
             this.contextParameters.set(last.text, this.extractLiteral(valueNode));
+          }else if(this.isSafe(valueNode, last)){
+            this.contextParameters.set(last.text, valueNode.text);
           }
         }
       }
@@ -772,8 +774,10 @@ class Annotator {
       const left = node.childForFieldName("left");
       const right = node.childForFieldName("right");
       if (left?.type === "identifier" && left.text === last.text && right) {
-        if (this.isSafe(right, last)) {
+        if (this.isSafe(right)) {
           this.contextParameters.set(last.text, this.extractLiteral(right));
+        }else if(this.isSafe(right, last)){
+          this.contextParameters.set(last.text, right.text);
         }
       }
     }
@@ -784,7 +788,7 @@ class Annotator {
     }
   }
 
-  private isSafe(node: SyntaxNode, safe: SyntaxNode): boolean {
+  private isSafe(node: SyntaxNode, safe: SyntaxNode = null): boolean {
     const invalidTypes = [
       "arrow_function",
       "function",
@@ -794,7 +798,7 @@ class Annotator {
 
     let descendantNodes = node.descendantsOfType("identifier");
 
-    if (descendantNodes.every(node => node.text === safe.text)) {
+    if (descendantNodes.every(node => node.text === safe?.text)) {
       return !invalidTypes.includes(node.type) &&
         !node.descendantsOfType("call_expression").length &&
         !node.descendantsOfType("member_expression").length &&

@@ -315,7 +315,7 @@ class Extractor {
     
             return miniSLCode;
         } */
-    translateFunctionAnnotations(fnName, params) {
+    translateFunctionAnnotations(fnName, params = []) {
         //array containing the miniSL code generated from the annotations
         let miniSLCode = new Array();
         //counters for the opened and closed statements '{ and }'
@@ -411,7 +411,7 @@ class Extractor {
             let ann = annotatedLine.substring(startIndex, endIndex).trim();
             //start to identify the controlStatements type
             endIndex = ann.indexOf("(");
-            if (endIndex !== -1) {
+            if (endIndex !== -1 || true) {
                 //selecting the parameters of the controlStatements 
                 startIndex = endIndex + 1;
                 endIndex = ann.lastIndexOf(")");
@@ -419,18 +419,18 @@ class Extractor {
                 ann = ann.substring(0, startIndex - 1);
                 ann = ann.replace(/\s/g, "");
                 try {
-                    if (ann.startsWith(this.config.controlStatements.invoke)) {
+                    if (ann.startsWith(this.config.controlStatements.invoke) || true) {
                         const fnName = ann.substring(this.config.controlStatements.invoke.length);
                         //check if the guard is well formed
                         const paramsArray = params.split(",");
                         if (!paramsArray.every(param => param.trim().match(/^[a-zA-Z_]*[a-zA-Z0-9_]*$/))) {
                             throw new Error("Invalid parameter passed to function annotation: " + annotatedLine);
                         }
-                        this.translateFunctionAnnotations(fnName, paramsArray);
-                        miniSLCode.push(this.miniSLFunctionCode.get(fnName).code);
+                        this.translateFunctionAnnotations(this.entrypoint);
+                        miniSLCode.push(this.miniSLFunctionCode.get(this.entrypoint).code);
                         //wrapping the main code in an IIFE
                         miniSLCode.push(this.writeCloseStatement());
-                        miniSLCode = [this.writeMain(this.miniSLFunctionCode.get(fnName).params), ...miniSLCode];
+                        miniSLCode = [this.writeMain(this.miniSLFunctionCode.get(this.entrypoint).params), ...miniSLCode];
                     }
                     else {
                         throw new Error(`Unknown statement: ${ann}`);

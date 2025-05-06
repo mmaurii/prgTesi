@@ -27,7 +27,7 @@ class Extractor {
     private endOfAnnotation = true;
     entrypoint: string = null;
 
-    public async extract(entryPoint:string = "main",path: string = this.annotatedCodeFilePath): Promise<void> {
+    public async extract(entryPoint: string = "main", path: string = this.annotatedCodeFilePath): Promise<void> {
         let miniSLCode = "\n";
         this.entrypoint = entryPoint;
 
@@ -66,7 +66,7 @@ class Extractor {
             let indentedCode = this.indentMiniSLCode(miniSLCode);
 
             console.log(indentedCode);
-            
+
             const annotator = new miniSLParser(indentedCode);
             annotator.check();
 
@@ -180,9 +180,9 @@ class Extractor {
      * @returns miniSL code for the main function in a string format
      */
     private writeMain(params: string[]): string {
-/*         if (params.charAt(params.length - 1) === "," || params.charAt(0) === ",") {
-            throw new Error("Invalid syntax main can't have empty parameters");
-        } */
+        /*         if (params.charAt(params.length - 1) === "," || params.charAt(0) === ",") {
+                    throw new Error("Invalid syntax main can't have empty parameters");
+                } */
         const regex = /^[a-zA-Z_]*[a-zA-Z0-9_]*$/;
         const paramsMapped = params.map(i => {
             if (i.trim().match(regex)) {
@@ -333,7 +333,7 @@ class Extractor {
         } */
 
 
-    private translateFunctionAnnotations(fnName: string, params: string[]): void {
+    private translateFunctionAnnotations(fnName: string, params: string[] = []): void {
         //array containing the miniSL code generated from the annotations
         let miniSLCode: String[] = new Array();
         //counters for the opened and closed statements '{ and }'
@@ -408,8 +408,10 @@ class Extractor {
             }
         }
 
-        this.miniSLFunctionCode.set(fnName, {params : this.functionsAnnotation.get(fnName).params,
-                                            code : miniSLCode.join("")});
+        this.miniSLFunctionCode.set(fnName, {
+            params: this.functionsAnnotation.get(fnName).params,
+            code: miniSLCode.join("")
+        });
     }
 
     /**
@@ -422,51 +424,16 @@ class Extractor {
         let miniSLCode: String[] = new Array();
 
         if (this.entrypoint !== null) {
-            //selecting the unspaced annotation controlStatements
-            const annotatedLine = this.entrypoint;
-            const miniSLComment = this.config.startAnnotation + " " + this.config.miniSLID + ":";
+            try {
+                this.translateFunctionAnnotations(this.entrypoint);
+                miniSLCode.push(this.miniSLFunctionCode.get(this.entrypoint).code);
 
-            //selecting the annotation
-            let startIndex = annotatedLine.indexOf(miniSLComment) + miniSLComment.length;
-            let endIndex = this.config.endAnnotation.length > 0 ? annotatedLine.indexOf(this.config.endAnnotation, startIndex) : annotatedLine.length;
-            let ann = annotatedLine.substring(startIndex, endIndex).trim();
-
-            //start to identify the controlStatements type
-            endIndex = ann.indexOf("(");
-
-            if (endIndex !== -1) {
-                //selecting the parameters of the controlStatements 
-                startIndex = endIndex + 1;
-                endIndex = ann.lastIndexOf(")");
-                const params = ann.substring(startIndex, endIndex).trim();
-                ann = ann.substring(0, startIndex - 1);
-                ann = ann.replace(/\s/g, "");
-
-                try {
-                    if (ann.startsWith(this.config.controlStatements.invoke)) {
-                        const fnName = ann.substring(this.config.controlStatements.invoke.length);
-                        //check if the guard is well formed
-                        const paramsArray = params.split(",");
-
-                        if (!paramsArray.every(param => param.trim().match(/^[a-zA-Z_]*[a-zA-Z0-9_]*$/))) {
-                            throw new Error("Invalid parameter passed to function annotation: " + annotatedLine);
-                        }
-
-                        this.translateFunctionAnnotations(fnName, paramsArray);
-                        miniSLCode.push(this.miniSLFunctionCode.get(fnName).code);
-
-                        //wrapping the main code in an IIFE
-                        miniSLCode.push(this.writeCloseStatement());
-                        miniSLCode = [this.writeMain(this.miniSLFunctionCode.get(fnName).params), ...miniSLCode];
-                    } else {
-                        throw new Error(`Unknown statement: ${ann}`);
-                    }
-                } catch (error) {
-                    console.error(`Error while processing the annotation: ${ann}\nin line:${annotatedLine}\n`, error);
-                    exit(0);
-                }
-            }else {
-                throw new Error("Invalid entrypoint annotation: " + annotatedLine);
+                //wrapping the main code in an IIFE
+                miniSLCode.push(this.writeCloseStatement());
+                miniSLCode = [this.writeMain(this.miniSLFunctionCode.get(this.entrypoint).params), ...miniSLCode];
+            } catch (error) {
+                console.error(error);
+                exit(0);
             }
         } else {
             throw new Error("Entry point not found in the annotations");
@@ -641,13 +608,13 @@ class Extractor {
         return this.validateArithmeticExpression(node.expression);
     }
 
-        /**
-     * This function reads the function annotations and saves the relative miniSL code in a map
-     * @param i index of the just readed annotation from the annotations array
-     * @param annotation annotation readed without parameters
-     * @param params parameters of the function
-     * @throws Error if the function is not found in the map or in the annotations array
-     */
+    /**
+ * This function reads the function annotations and saves the relative miniSL code in a map
+ * @param i index of the just readed annotation from the annotations array
+ * @param annotation annotation readed without parameters
+ * @param params parameters of the function
+ * @throws Error if the function is not found in the map or in the annotations array
+ */
     private findFunctionAnnotations(): void {
         for (let i = this.annotations.length - 1; i >= 0; --i) {
             //selecting the unspaced annotation controlStatements
@@ -693,12 +660,12 @@ class Extractor {
                         }
                     }
 
-                    let code: string[] = this.annotations.splice(i, (j)-(i));
+                    let code: string[] = this.annotations.splice(i, (j) - (i));
 
                     code.pop(); //Remove last "end" statement
                     code.shift(); //Remove first "function" statement
 
-                    this.functionsAnnotation.set(fnName, {params:params,code:code});
+                    this.functionsAnnotation.set(fnName, { params: params, code: code });
                 } else if (annotation.startsWith(this.config.controlStatements.invoke + this.entrypoint)) {
                     this.entrypoint = ann;
                 }
