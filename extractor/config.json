@@ -9,6 +9,7 @@
         "else": "else",
         "end": "end",
         "function": "function",
-        "invoke": "invoke"
+        "invoke": "invoke",
+        "defCall": "defCall"
     }
 }
