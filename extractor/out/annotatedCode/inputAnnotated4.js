@@ -62,7 +62,6 @@ var miniSLAnnotated4;
         return 0;
         // miniSL: end
     }
-    //scritto a mano da me
     main(1, 2, 3, true);
 })(miniSLAnnotated4 || (miniSLAnnotated4 = {}));
 //# sourceMappingURL=inputAnnotated4.js.map

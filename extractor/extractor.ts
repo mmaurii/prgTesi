@@ -20,9 +20,10 @@ class Extractor {
     private miniSLServices = "";
     private miniSLFunctionCode = new Map();
     private functionsAnnotation = new Map();
+    private miniSLDefinedService = new Set<string>();
     private annotations;
     private extractorConfigFilePath = './config.json';
-    private annotatedCodeFilePath = "./annotatedCode/inputAnnotated4.ts";
+    private annotatedCodeFilePath = "./annotatedCode/input5.1.ts";
     //flag to stop finding function annotations
     entrypoint: string = null;
 
@@ -300,7 +301,11 @@ class Extractor {
                         miniSLCode.push(this.getFunctionInvoked(fnName, params.split(",")));
                     } else if (ann.startsWith(this.config.controlStatements.call)) {
                         const fnName = ann.substring(this.config.controlStatements.call.length);
-                        miniSLCode.push(this.writeCall(fnName, params) + "\n");
+                        if(this.miniSLDefinedService.has(fnName)) {
+                            miniSLCode.push(this.writeCall(fnName, params) + "\n");
+                        }else{
+                            throw new Error(`Function ${fnName} not defined as a function that make a call to an external service`);
+                        }
                     } else if (ann.startsWith(this.config.controlStatements.invoke)) {
                         const fnName = ann.substring(this.config.controlStatements.invoke.length);
                         //check if the guard is well formed
@@ -579,7 +584,12 @@ class Extractor {
                     code.shift(); //Remove first "function" statement
 
                     this.functionsAnnotation.set(fnName, { params: params, code: code });
-                } else if (annotation.startsWith(this.config.controlStatements.invoke + this.entrypoint)) {
+                } else if(annotation.startsWith(this.config.controlStatements.defCall)) {
+                    const params = unspacedAnn.substring(startIndex, unspacedAnn.length - 1).split(",");
+                    const fnName = annotation.substring(this.config.controlStatements.defCall.length);
+                    this.miniSLDefinedService.add(fnName);
+
+                }else if (annotation.startsWith(this.config.controlStatements.invoke + this.entrypoint)) {
                     this.entrypoint = ann;
                 }
             }

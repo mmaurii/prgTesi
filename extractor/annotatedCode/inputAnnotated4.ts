@@ -71,6 +71,5 @@ namespace miniSLAnnotated4 {
         // miniSL: end
     }
 
-    //scritto a mano da me
     main(1, 2, 3, true);
 }
