@@ -46,7 +46,7 @@ export class RecursionChecker {
         this.buildCallGraph(); // Build the call graph from the annotations
     }
 
-    haveRecursiveFunction(nodeName:string): boolean {
+    detectRecursiveCycle(nodeName:string): void {
         const visited = new Set<string>();
     
         for (const startNode of this.callGraph.getItem(nodeName)) {
@@ -69,7 +69,7 @@ export class RecursionChecker {
                 // Prima volta che entro nel nodo
                 if (recStack.has(current.node)) {
                     // Nodo già in corso ⇒ ciclo trovato
-                    return true;
+                    throw new Error(`Ciclo trovato: ${current.node}. Non possiamo gestire la ricorsione.`);
                 }
     
                 visited.add(current.node);
@@ -84,14 +84,12 @@ export class RecursionChecker {
                         stack.push({ node: neighbor, entered: false });
                     } else if (recStack.has(neighbor)) {
                         // Vicino già in corso ⇒ ciclo trovato
-                        return true;
+                        throw new Error(`Ciclo trovato: ${current.node}. Non possiamo gestire la ricorsione.`);
                     }
                 }
             }
         }
-    
-        return false;
-    }
+        }
 
     private buildCallGraph(): void {
         //counters for the opened and closed statements '{ and }'

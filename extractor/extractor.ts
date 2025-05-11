@@ -47,10 +47,7 @@ class Extractor {
             //Recursion checking
             const recursionChecker = new RecursionChecker(this.annotations, this.config);
             recursionChecker.printCallGraph();
-            if (recursionChecker.haveRecursiveFunction(entryPoint)) {
-                console.error("Recursion detected in the code");
-                return;
-            }
+            recursionChecker.detectRecursiveCycle(entryPoint);
 
             //Reading the function annotations and saveing the relative miniSL code in a map
             this.findFunctionAnnotations();
