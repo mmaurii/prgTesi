@@ -250,7 +250,13 @@ class Extractor {
         //array containing the miniSL code generated from the annotations
         let miniSLCode: String[] = new Array();
         //counters for the opened and closed statements '{ and }'
-        let functionAnnotation = this.functionsAnnotation.get(fnName).code;
+        let functionAnnotation = this.functionsAnnotation.get(fnName);
+
+        if (functionAnnotation) {
+            functionAnnotation = functionAnnotation.code;
+        } else {
+            throw new Error(`Function not found, you must define it in the annotations with <${this.config.controlStatements.function}>`);
+        }
 
         if (!functionAnnotation) {
             throw new Error("Function not found in the annotations array, so in the file");

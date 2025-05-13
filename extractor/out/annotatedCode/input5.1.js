@@ -12,7 +12,7 @@ var miniSL5;
     function makeWork(jobs, m, r) {
         // miniSL: for(i,m)
         for (let i = 0; i < m; i++) {
-            // miniSL: call map(jobs,i)
+            // miniSL: invoke map(jobs,i)
             map(jobs, i);
             // miniSL: for(j,r)
             for (let j = 0; j < r; j++) {

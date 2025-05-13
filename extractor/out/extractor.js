@@ -52,10 +52,7 @@ class Extractor {
                 //Recursion checking
                 const recursionChecker = new RecursionChecker(this.annotations, this.config);
                 recursionChecker.printCallGraph();
-                if (recursionChecker.haveRecursiveFunction(entryPoint)) {
-                    console.error("Recursion detected in the code");
-                    return;
-                }
+                recursionChecker.detectRecursiveCycle(entryPoint);
                 //Reading the function annotations and saveing the relative miniSL code in a map
                 this.findFunctionAnnotations();
                 //Reading the main annotation and generating miniSL code
@@ -237,7 +234,13 @@ class Extractor {
         //array containing the miniSL code generated from the annotations
         let miniSLCode = new Array();
         //counters for the opened and closed statements '{ and }'
-        let functionAnnotation = this.functionsAnnotation.get(fnName).code;
+        let functionAnnotation = this.functionsAnnotation.get(fnName);
+        if (functionAnnotation) {
+            functionAnnotation = functionAnnotation.code;
+        }
+        else {
+            throw new Error(`Function not found, you must define it in the annotations with ${this.config.controlStatements.function}`);
+        }
         if (!functionAnnotation) {
             throw new Error("Function not found in the annotations array, so in the file");
         }

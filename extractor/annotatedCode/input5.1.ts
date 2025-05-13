@@ -15,7 +15,7 @@ namespace miniSL5 {
     function makeWork(jobs: Job[], m: number, r: number): void {
         // miniSL: for(i,m)
         for (let i = 0; i < m; i++) {
-            // miniSL: call map(jobs,i)
+            // miniSL: invoke map(jobs,i)
             map(jobs, i);
             // miniSL: for(j,r)
             for (let j = 0; j < r; j++) {
