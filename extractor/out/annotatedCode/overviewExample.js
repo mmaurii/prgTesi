@@ -2,18 +2,9 @@ var miniSL1;
 (function (miniSL1) {
     // miniSL: function main(deta,  length)
     function main(deta, length) {
-        // miniSL: for(i, length)
         for (let i = 0; i < length; i++) {
-            // miniSL: if(0 < 0 || 0 >= length)
-            if (i < 0 || i >= length) {
-                // miniSL: call postMessage(deta, i)
-                postMessage(deta, i);
-            } // miniSL: else
-            else {
-                console.error("Index out of bounds: " + i);
-                // miniSL: end
-            }
-            // miniSL: end
+            // miniSL: call postMessage(deta, i)
+            postMessage(deta, i);
         }
         printMessage(deta);
         // miniSL: call postMessage(deta, i)
@@ -36,4 +27,4 @@ var miniSL1;
         });
     }
 })(miniSL1 || (miniSL1 = {}));
-//# sourceMappingURL=output.js.map
+//# sourceMappingURL=overviewExample.js.map

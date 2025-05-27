@@ -23,7 +23,7 @@ class Extractor {
     private miniSLDefinedService = new Set<string>();
     private annotations;
     private extractorConfigFilePath = './config.json';
-    private annotatedCodeFilePath = "./annotatedCode/input5.1.ts";
+    private annotatedCodeFilePath = "./annotatedCode/overviewExample.ts";
     //flag to stop finding function annotations
     entrypoint: string = null;
 

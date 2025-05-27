@@ -31,7 +31,7 @@ class Extractor {
         this.functionsAnnotation = new Map();
         this.miniSLDefinedService = new Set();
         this.extractorConfigFilePath = './config.json';
-        this.annotatedCodeFilePath = "./annotatedCode/input5.1.ts";
+        this.annotatedCodeFilePath = "./annotatedCode/overviewExample.ts";
         //flag to stop finding function annotations
         this.entrypoint = null;
     }
@@ -239,7 +239,7 @@ class Extractor {
             functionAnnotation = functionAnnotation.code;
         }
         else {
-            throw new Error(`Function not found, you must define it in the annotations with ${this.config.controlStatements.function}`);
+            throw new Error(`Function not found, you must define it in the annotations with <${this.config.controlStatements.function}>`);
         }
         if (!functionAnnotation) {
             throw new Error("Function not found in the annotations array, so in the file");
