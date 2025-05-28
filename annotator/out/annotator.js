@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import Parser from "tree-sitter";
 import TreeSitterTS from "tree-sitter-typescript";
 import { MiniSLAnnotationGenerator } from "./miniSLAnnotationGenerator.js";
+import { exit } from 'process';
 // Extract the correct language parser
 const { typescript } = TreeSitterTS;
 function readFile(path) {
@@ -70,13 +71,19 @@ class Annotator {
             let root;
             // Collect internal functions
             this.collectInternalFunctions(this.tree.rootNode);
-            const executionTree = this.buildExecutionTree(this.tree.rootNode, entryPoint);
-            if (executionTree) {
+            try {
+                const executionTree = this.buildExecutionTree(this.tree.rootNode, entryPoint);
+                /*       if (executionTree) {
+                 */
                 edits.push(...this.followPath(executionTree)); // Passa il nodo radice dell'albero di esecuzione
                 console.log(edits);
+                /*       } else {
+                        console.log("Nessun percorso miniSL trovato.");
+                      } */
             }
-            else {
-                console.log("Nessun percorso miniSL trovato.");
+            catch (error) {
+                console.error("Error while building execution tree:", error);
+                exit(1); // Esci con errore
             }
             // Apply edits in reverse order to avoid index shifting
             //    edits.sort((a, b) => a.pos - b.pos);
@@ -95,7 +102,13 @@ class Annotator {
     buildExecutionTree(root, entryPoint) {
         var _a;
         const callGraph = this.buildCallGraph(root);
+        if (!callGraph.has(entryPoint)) {
+            throw new Error(`Entry point function "${entryPoint}" not found in the call graph.`);
+        }
         const miniSLFunctions = this.findMiniSLFunctions(root);
+        if (miniSLFunctions.size === 0) {
+            throw new Error(`Entry point function "${entryPoint}" is not annotated with miniSL.`);
+        }
         const functionsInPath = this.findPathsToMiniSL(callGraph, entryPoint, miniSLFunctions);
         const functionMap = new Map();
         for (const fnNode of root.descendantsOfType("function_declaration")) {
@@ -106,14 +119,17 @@ class Annotator {
         const visited = new Set();
         function buildSubTree(fnName) {
             const fnNode = functionMap.get(fnName);
-            if (!fnNode)
-                return null;
-            if (visited.has(fnName))
+            if (!fnNode) {
+                throw new Error(`Function ${fnName} not found in the syntax tree.`);
+            }
+            if (visited.has(fnName)) {
                 return { node: fnNode, children: [] };
+            }
             visited.add(fnName);
             const body = fnNode.childForFieldName("body");
-            if (!body)
+            if (!body) {
                 return { node: fnNode, children: [] };
+            }
             // Ricorsivamente costruisce tutti i figli del body
             function walk(node) {
                 const children = [];
@@ -202,14 +218,16 @@ class Annotator {
         const edits = [];
         const stack = [root];
         let contextParameters;
-        console.log("Following path in execution tree...");
+        /*     console.log("Following path in execution tree...");
+         */
         while (stack.length > 0) {
             const currentExecutionTreeNode = stack.pop();
             const node = currentExecutionTreeNode.node;
             if (!node) {
                 continue;
             }
-            console.log(`Processing node: ${node.type} at ${node.startPosition.row}:${node.startPosition.column}`);
+            /*       console.log(`Processing node: ${node.type} at ${node.startPosition.row}:${node.startPosition.column}`);
+             */
             console;
             if (node.type === "function_declaration") {
                 const functionName = (_a = node.childForFieldName("name")) === null || _a === void 0 ? void 0 : _a.text;

@@ -1,15 +1,14 @@
 namespace miniSL1 {
     // miniSL: function main(deta,  length)
     function main(deta: string[], length: number): void {
+        // miniSL: for(i, length)
         for (let i = 0; i < length; i++) {
             // miniSL: call postMessage(deta, i)
             postMessage(deta, i);
+            // miniSL: end
         }
 
         printMessage(deta);
-
-        // miniSL: call postMessage(deta, i)
-        postMessage(deta, length - 1);
         // miniSL: end
     }
 

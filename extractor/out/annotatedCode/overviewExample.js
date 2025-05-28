@@ -2,13 +2,13 @@ var miniSL1;
 (function (miniSL1) {
     // miniSL: function main(deta,  length)
     function main(deta, length) {
+        // miniSL: for(i, length)
         for (let i = 0; i < length; i++) {
             // miniSL: call postMessage(deta, i)
             postMessage(deta, i);
+            // miniSL: end
         }
         printMessage(deta);
-        // miniSL: call postMessage(deta, i)
-        postMessage(deta, length - 1);
         // miniSL: end
     }
     function printMessage(messages) {

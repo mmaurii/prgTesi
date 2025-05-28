@@ -5,6 +5,7 @@ import { MiniSLAnnotationGenerator } from "./miniSLAnnotationGenerator.js";
 import { Config } from "./config.js";
 import { ExecutionTreeNode } from "./ExecutionTreeNode.js";
 import { text } from 'stream/consumers';
+import { exit } from 'process';
 
 // Extract the correct language parser
 const { typescript } = TreeSitterTS;
@@ -76,12 +77,18 @@ class Annotator {
     // Collect internal functions
     this.collectInternalFunctions(this.tree.rootNode);
 
-    const executionTree = this.buildExecutionTree(this.tree.rootNode, entryPoint);
-    if (executionTree) {
+    try {
+      const executionTree = this.buildExecutionTree(this.tree.rootNode, entryPoint);
+      /*       if (executionTree) {
+       */
       edits.push(...this.followPath(executionTree)); // Passa il nodo radice dell'albero di esecuzione
       console.log(edits);
-    } else {
-      console.log("Nessun percorso miniSL trovato.");
+      /*       } else {
+              console.log("Nessun percorso miniSL trovato.");
+            } */
+    } catch (error) {
+      console.error("Error while building execution tree:", error);
+      exit(1); // Esci con errore
     }
 
 
@@ -103,7 +110,15 @@ class Annotator {
 
   buildExecutionTree(root: SyntaxNode, entryPoint: string): ExecutionTreeNode | null {
     const callGraph = this.buildCallGraph(root);
+    if (!callGraph.has(entryPoint)) {
+      throw new Error(`Entry point function "${entryPoint}" not found in the call graph.`);
+    }
+
     const miniSLFunctions = this.findMiniSLFunctions(root);
+    if (miniSLFunctions.size === 0) {
+      throw new Error(`Entry point function "${entryPoint}" is not annotated with miniSL.`);
+    }
+    
     const functionsInPath = this.findPathsToMiniSL(callGraph, entryPoint, miniSLFunctions);
 
     const functionMap = new Map<string, SyntaxNode>();
@@ -116,13 +131,19 @@ class Annotator {
 
     function buildSubTree(fnName: string): ExecutionTreeNode | null {
       const fnNode = functionMap.get(fnName);
-      if (!fnNode) return null;
-      if (visited.has(fnName)) return { node: fnNode, children: [] };
+      if (!fnNode) {
+        throw new Error(`Function ${fnName} not found in the syntax tree.`);
+      }
+      if (visited.has(fnName)) {
+        return { node: fnNode, children: [] };
+      }
       visited.add(fnName);
 
       const body = fnNode.childForFieldName("body");
-      if (!body) return { node: fnNode, children: [] };
-
+      if (!body) {
+        return { node: fnNode, children: [] };
+      }
+      
       // Ricorsivamente costruisce tutti i figli del body
       function walk(node: SyntaxNode): ExecutionTreeNode {
         const children: ExecutionTreeNode[] = [];
@@ -225,8 +246,8 @@ class Annotator {
     const stack: ExecutionTreeNode[] = [root];
     let contextParameters: string[];
 
-/*     console.log("Following path in execution tree...");
- */
+    /*     console.log("Following path in execution tree...");
+     */
     while (stack.length > 0) {
       const currentExecutionTreeNode = stack.pop()!;
       const node = currentExecutionTreeNode.node;
@@ -234,8 +255,8 @@ class Annotator {
         continue;
       }
 
-/*       console.log(`Processing node: ${node.type} at ${node.startPosition.row}:${node.startPosition.column}`);
- */
+      /*       console.log(`Processing node: ${node.type} at ${node.startPosition.row}:${node.startPosition.column}`);
+       */
       console
       if (node.type === "function_declaration") {
         const functionName = node.childForFieldName("name")?.text;

@@ -4,20 +4,10 @@ var miniSL1;
     function main(deta, length) {
         // miniSL: for(i, length)
         for (let i = 0; i < length; i++) {
-            // miniSL: if(0 < 0 || 0 >= length)
-            if (i < 0 || i >= length) {
-                // miniSL: call postMessage(deta, i)
-                postMessage(deta, i);
-            } // miniSL: else
-            else {
-                console.error("Index out of bounds: " + i);
-                // miniSL: end
-            }
+            postMessage(deta, i);
             // miniSL: end
         }
         printMessage(deta);
-        // miniSL: call postMessage(deta, i)
-        postMessage(deta, length - 1);
         // miniSL: end
     }
     function printMessage(messages) {
@@ -25,7 +15,6 @@ var miniSL1;
             console.log("New " + i + " message: " + messages[i]);
         }
     }
-    // miniSL: defCall postMessage(messages, position)
     function postMessage(messages, position) {
         fetch("https://example.com/api/messages", {
             method: "POST",
