@@ -1,10 +1,24 @@
 {
+  "name": "minisl-extractor",
+  "version": "1.0.0",
+  "description": "MiniSL Code Extractor",
   "type": "module",
+  "main": "dist/extractor.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/extractor.js",
+    "clean": "rimraf dist",
+    "dev": "npx tsc && node dist/extractor.js"
+  },
   "dependencies": {
     "@types/node": "^22.13.4",
     "acorn": "^8.14.1",
     "antlr4": "^4.13.2",
     "fs": "^0.0.1-security",
     "prettier": "^3.5.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "rimraf": "^5.0.5"
   }
 }

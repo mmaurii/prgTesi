@@ -1,10 +1,26 @@
 {
+  "name": "minisl-checker",
+  "version": "1.0.0",
+  "description": "MiniSL Code Checker",
   "type": "module",
+  "main": "dist/checker.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/checker.js",
+    "clean": "rimraf dist",
+    "dev": "npx tsc && node dist/checker.js"
+  },
   "dependencies": {
     "@types/node": "^22.13.4",
     "acorn": "^8.14.1",
     "antlr4": "^4.13.2",
+    "antlr4ts": "^0.5.0-alpha.4",
     "fs": "^0.0.1-security",
     "prettier": "^3.5.3"
+  },
+  "devDependencies": {
+    "antlr4ts-cli": "^0.5.0-alpha.4",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
   }
 }

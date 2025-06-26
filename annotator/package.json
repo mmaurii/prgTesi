@@ -1,5 +1,15 @@
 {
+  "name": "minisl-annotator",
+  "version": "1.0.0",
+  "description": "MiniSL Code Annotator",
   "type": "module",
+  "main": "dist/annotator.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/annotator.js",
+    "clean": "rimraf dist",
+    "dev": "npx tsc && node dist/annotator.js"
+  },
   "dependencies": {
     "@types/node": "^22.13.4",
     "acorn": "^8.14.1",
@@ -7,5 +17,9 @@
     "prettier": "^3.5.3",
     "tree-sitter": "^0.21.1",
     "tree-sitter-typescript": "^0.23.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "rimraf": "^5.0.5"
   }
 }

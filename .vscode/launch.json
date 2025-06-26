@@ -1,0 +1,71 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Annotator",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/annotator/dist/annotator.js",
+      "args": ["./inputCode/input4example.ts", "output.ts"],
+      "cwd": "${workspaceFolder}/annotator",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/annotator/dist/**/*.js"],
+      "preLaunchTask": "build-annotator"
+    },
+    {
+      "name": "Debug Extractor",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/extractor/dist/extractor.js",
+      "args": ["./../annotator/output.ts", "main"],
+      "cwd": "${workspaceFolder}/extractor",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/extractor/dist/**/*.js"],
+      "preLaunchTask": "build-extractor"
+    },
+    {
+      "name": "Debug Checker",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/miniSLChecker/dist/checker.js",
+      "args": [],
+      "cwd": "${workspaceFolder}/miniSLChecker",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/miniSLChecker/dist/**/*.js"],
+      "preLaunchTask": "build-checker"
+    },
+    {
+      "name": "Debug Annotator (Custom Input)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/annotator/dist/annotator.js",
+      "args": ["${input:inputFile}", "${input:outputFile}"],
+      "cwd": "${workspaceFolder}/annotator",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/annotator/dist/**/*.js"],
+      "preLaunchTask": "build-annotator"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "inputFile",
+      "description": "Input file path",
+      "default": "./inputCode/input4example.ts",
+      "type": "promptString"
+    },
+    {
+      "id": "outputFile",
+      "description": "Output file path",
+      "default": "debug_output.ts",
+      "type": "promptString"
+    }
+  ]
+}

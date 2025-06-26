@@ -46,6 +46,8 @@ function evaluateY(y: number): number {
     } else {
         return 5;
     }
+
+    return 0;
 }
 
 function evaluateZ(z: number): number {

@@ -1,9 +1,17 @@
 {
   "compilerOptions": {
-      "target": "ES6",        // Update to a modern ES version
-      "module": "ESNext",        // Use ES modules instead of CommonJS
-      "outDir": "out",
+      "target": "ES2020",
+      "module": "ESNext",
+      "outDir": "dist",
+      "rootDir": ".",
       "sourceMap": true,
-      "moduleResolution": "Node" // Ensure Node.js-style resolution
-  }
+      "moduleResolution": "Node",
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "strict": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true
+  },
+  "include": ["*.ts"],
+  "exclude": ["dist", "node_modules"]
 }

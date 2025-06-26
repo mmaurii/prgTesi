@@ -1,3 +1,128 @@
+# Node.js dependencies
+node_modules/
+*/node_modules/
 miniSLChecker/node_modules/
 annotator/node_modules/
 extractor/node_modules/
+
+# Build outputs
+dist/
+*/dist/
+build/
+*/build/
+
+# Generated output files from the pipeline
+annotator/output.txt
+extractor/output.txt
+miniSLChecker/miniSLCode.txt
+
+# TypeScript compilation outputs
+*.js
+*.js.map
+*.d.ts
+# Keep ANTLR generated TypeScript files
+!miniSLGrammar/*.ts
+!miniSLChecker/miniSLGrammar/*.ts
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+.env.local
+.env.production
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows specific
+Desktop.ini
+$RECYCLE.BIN/
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Misc
+*.tsbuildinfo
+.eslintcache
+
+# ANTLR generated files (except TypeScript sources)
+*.interp
+*.tokens
+# Keep the grammar file and TypeScript outputs
+!*.g4
+!miniSLChecker/miniSLGrammar/*.g4

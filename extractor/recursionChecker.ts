@@ -93,7 +93,7 @@ export class RecursionChecker {
 
     private buildCallGraph(): void {
         //counters for the opened and closed statements '{ and }'
-        let indentLevel = [];
+        let indentLevel: string[] = [];
 
         for (let i = 0; i < this.annotations.length; i++) {
             //selecting the unspaced annotation controlStatements

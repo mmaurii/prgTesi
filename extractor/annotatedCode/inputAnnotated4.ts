@@ -45,8 +45,8 @@ namespace miniSLAnnotated4 {
     function evaluateY(y: number): number {
         // miniSL: if(y > 0)
         if (y > 0) {
-            return // miniSL: invoke z() 
-            z();
+            // miniSL: invoke z() 
+            return z();
         } // miniSL: else
         else {
             return 5;

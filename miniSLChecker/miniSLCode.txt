@@ -1,31 +1,14 @@
-service calc : (void) -> void;
-service map : (void) -> void;
-service reduce : (void) -> void;
-service IsPremiumUser : (void) -> void;
-service PremiumService : (void) -> void;
-service BasicService : (void) -> void;
-service VipService : (void) -> void;
+service random : (void) -> void;
 
-(jobs, m, r, isVipUser, username, param) => {
-  for(i in range(0, m)) {
-    call map(jobs,i)
-    for(j in range(0, r)) {
-      call reduce(jobs,i,j)
-    }
-  }
-  if(5 == 5) {
-    if(call IsPremiumUser((username && true)||param)) {
-      call PremiumService(param)
+(x, y, type) => {
+  if(type) {
+    if(1 + y > 0) {
+      if(1 + y > 0) {
+        call random()
+      }
     } else {
-      call BasicService(param)
     }
   } else {
-    call VipService(param)
-  }
-  call calc()
-  if(flag) {
-    call calc()
-  } else {
-    call calc()
   }
 }
+

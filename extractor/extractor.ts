@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as acorn from "acorn";
 import { exit } from 'process';
 import { RecursionChecker } from './recursionChecker.js';
-import { miniSLParser } from './miniSLParser.js';
 
 //import { Config } from './config.js';
 
@@ -12,22 +11,32 @@ async function readFile(path: string): Promise<string> {
         return data;
     } catch (error) {
         console.error('Error while reading the file:\n', error);
+        return "";
+    }
+}
+
+async function writeFile(path: string, content: string): Promise<void> {
+    try {
+        await fs.promises.writeFile(path, content, 'utf-8');
+    } catch (error) {
+        console.error('Error while writing the file:\n', error);
+        throw error;
     }
 }
 
 class Extractor {
-    private config: Config;
+    private config!: Config;
     private miniSLServices = "";
     private miniSLFunctionCode = new Map();
     private functionsAnnotation = new Map();
     private miniSLDefinedService = new Set<string>();
-    private annotations;
+    private annotations: string[] = [];
     private extractorConfigFilePath = './config.json';
-    private annotatedCodeFilePath = "./annotatedCode/overviewExample.ts";
+    private annotatedCodeFilePath = "./../annotator/output.txt";
     //flag to stop finding function annotations
-    entrypoint: string = null;
+    entrypoint: string | null = null;
 
-    public async extract(entryPoint: string = "main", path: string = this.annotatedCodeFilePath): Promise<void> {
+    public async extract(entryPoint: string = "main", path: string = this.annotatedCodeFilePath): Promise<string | null> {
         let miniSLCode = "\n";
         this.entrypoint = entryPoint;
 
@@ -40,7 +49,7 @@ class Extractor {
 
         if (this.annotations.length === 0) {
             console.error("Annotations not found in the file");
-            return;
+            return null;
         }
 
         try {
@@ -62,13 +71,10 @@ class Extractor {
             //indenting code
             let indentedCode = this.indentMiniSLCode(miniSLCode);
 
-            console.log(indentedCode);
-
-            const annotator = new miniSLParser(indentedCode);
-            annotator.check();
-
+            return indentedCode;
         } catch (error) {
             console.error("Error while extracting the code: \n", error);
+            return null;
         }
     }
 
@@ -314,7 +320,7 @@ class Extractor {
                         //check if the guard is well formed
                         const paramsArray = params.split(",");
 
-                        if (!paramsArray.every(param => param.trim().match(/^[a-zA-Z_]*[a-zA-Z0-9_]*$/))) {
+                        if (!paramsArray.every((param: string) => param.trim().match(/^[a-zA-Z_]*[a-zA-Z0-9_]*$/))) {
                             throw new Error("Invalid parameter passed to function annotation: " + annotatedLine);
                         }
 
@@ -552,7 +558,7 @@ class Extractor {
                 if (annotation.startsWith(this.config.controlStatements.function)) {
                     //check if the guard is well formed
                     const params = unspacedAnn.substring(startIndex, unspacedAnn.length - 1).split(",");
-                    if (!params.every(param => param.match(/^[a-zA-Z_]*[a-zA-Z0-9_]*$/))) {
+                    if (!params.every((param: string) => param.match(/^[a-zA-Z_]*[a-zA-Z0-9_]*$/))) {
                         throw new Error("Invalid parameter passed to function annotation: " + unspacedAnn);
                     }
 
@@ -600,5 +606,36 @@ class Extractor {
     }
 }
 
+// CLI support
+async function main() {
+    const args = process.argv.slice(2);
+    
+    if (args.length < 1) {
+        console.error("Usage: node dist/extractor.js <annotated_file_path> [entrypoint]");
+        process.exit(1);
+    }
+    
+    const filePath = args[0];
+    const entryPoint = args[1] || "main";
+    const outputPath = "output.txt";
+    
+    console.log(`Running extractor with file: ${filePath}, entry point: ${entryPoint}`);
+    
+    try {
+        const extractor = new Extractor();
+        const result = await extractor.extract(entryPoint, filePath);
+        
+        if (result) {
+            await writeFile(outputPath, result);
+            console.log(`MiniSL code successfully extracted and saved to ${outputPath}`);
+        } else {
+            console.error("Failed to extract MiniSL code");
+            process.exit(1);
+        }
+    } catch (error) {
+        console.error("Error in main:", error);
+        process.exit(1);
+    }
+}
 
-new Extractor().extract();
+main().catch(console.error);

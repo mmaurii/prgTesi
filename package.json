@@ -1,0 +1,36 @@
+{
+  "name": "minisl-processor",
+  "version": "1.0.0",
+  "description": "MiniSL Language Processor - Extractor, Annotator, and Checker",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:extractor && npm run build:annotator && npm run build:checker",
+    "build:extractor": "cd extractor && npm install && npx tsc",
+    "build:annotator": "cd annotator && npm install && npx tsc",
+    "build:checker": "cd miniSLChecker && npm install && npx tsc",
+    "annotate": "node annotator/dist/annotator.js",
+    "extract": "node extractor/dist/extractor.js",
+    "check": "node miniSLChecker/dist/checker.js",
+    "clean": "rimraf */dist */node_modules",
+    "install-all": "npm run install:extractor && npm run install:annotator && npm run install:checker",
+    "install:extractor": "cd extractor && npm install",
+    "install:annotator": "cd annotator && npm install",
+    "install:checker": "cd miniSLChecker && npm install",
+    "pipeline": "npm run annotate && npm run extract"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.4",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "minisl",
+    "language-processing",
+    "extractor",
+    "annotator",
+    "checker"
+  ],
+  "author": "",
+  "license": "MIT"
+}

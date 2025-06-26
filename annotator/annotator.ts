@@ -40,11 +40,11 @@ function prettyPrint(node: SyntaxNode, depth = 0): string {
 class Annotator {
   private filePathInput: string;
   private filePathConfig: string;
-  private miniSLAnnotatorGenerator: MiniSLAnnotationGenerator;
+  private miniSLAnnotatorGenerator!: MiniSLAnnotationGenerator;
   private code: string;
   private parser = new Parser();
   private internalFunctions: Map<string, SyntaxNode[]> = new Map<string, SyntaxNode[]>();
-  private tree: Parser.Tree;
+  private tree!: Parser.Tree;
   private commentLines: Set<SyntaxNode> = new Set<SyntaxNode>();
   private contextParameters = new Map<string, any>();
   private rootNodes: ExecutionTreeNode[] = [];
@@ -79,13 +79,12 @@ class Annotator {
 
     try {
       const executionTree = this.buildExecutionTree(this.tree.rootNode, entryPoint);
-      /*       if (executionTree) {
-       */
-      edits.push(...this.followPath(executionTree)); // Passa il nodo radice dell'albero di esecuzione
-      console.log(edits);
-      /*       } else {
-              console.log("Nessun percorso miniSL trovato.");
-            } */
+      if (executionTree) {
+        edits.push(...this.followPath(executionTree)); // Passa il nodo radice dell'albero di esecuzione
+        console.log(edits);
+      } else {
+        console.log("Nessun percorso miniSL trovato.");
+      }
     } catch (error) {
       console.error("Error while building execution tree:", error);
       exit(1); // Esci con errore
@@ -118,7 +117,7 @@ class Annotator {
     if (miniSLFunctions.size === 0) {
       throw new Error(`Entry point function "${entryPoint}" is not annotated with miniSL.`);
     }
-    
+
     const functionsInPath = this.findPathsToMiniSL(callGraph, entryPoint, miniSLFunctions);
 
     const functionMap = new Map<string, SyntaxNode>();
@@ -143,7 +142,7 @@ class Annotator {
       if (!body) {
         return { node: fnNode, children: [] };
       }
-      
+
       // Ricorsivamente costruisce tutti i figli del body
       function walk(node: SyntaxNode): ExecutionTreeNode {
         const children: ExecutionTreeNode[] = [];
@@ -281,8 +280,13 @@ class Annotator {
       } else if (node.type === "if_statement") {
         this.contextParameters.clear();
         let conditionNode = node.childForFieldName("condition");
+        if (!conditionNode) {
+          console.error("Error: If statement condition not found.");
+          continue;
+        }
+        
         let identifiers = this.extractIdentifiersFromCondition(conditionNode);
-        var condition: String = conditionNode?.text;
+        var condition: string = conditionNode.text;
 
         try {
           this.checkDeclaredValue(identifiers);
@@ -293,7 +297,7 @@ class Annotator {
             }
           }
         } catch (error) {
-          console.error(error.message);
+          console.error((error as Error).message);
         }
 
         if (condition) {
@@ -308,7 +312,7 @@ class Annotator {
           const elseComment = this.miniSLAnnotatorGenerator.getElseStatement() + "\n";
           edits.push({ pos: elseClause.startIndex, text: elseComment });
 
-          const closingBrace = elseClause.lastChild.lastChild;
+          const closingBrace = elseClause.lastChild?.lastChild;
           if (closingBrace?.type === "}") {
             const endComment = this.miniSLAnnotatorGenerator.getEndStatement() + "\n";
             edits.push({ pos: closingBrace.startIndex, text: endComment });
@@ -331,13 +335,22 @@ class Annotator {
         const initializer = node.childForFieldName("initializer");
         const condition = node.childForFieldName("condition");
 
+        if (!initializer || !condition) {
+          console.error("Error: For statement initializer or condition not found.");
+          continue;
+        }
+
         try {
           // ottengo le variabili usate nella guardia del for
-          this.checkDeclaredValue([initializer.namedChild(0)?.childForFieldName("name")]);
+          const initializerName = initializer.namedChild(0)?.childForFieldName("name");
+          if (initializerName) {
+            this.checkDeclaredValue([initializerName]);
+          }
           this.checkDeclaredValue([...this.extractIdentifiersFromCondition(condition)]);
         } catch (error) {
-          console.error(error.massage);
+          console.error((error as Error).message);
         }
+        
         const startIndex = this.getForStartIndex(initializer);
         const endIndex = this.getForEndIndex(condition);
         if (startIndex && endIndex) {
@@ -357,14 +370,14 @@ class Annotator {
           let comment = node.text;
           if (!comment.includes("miniSL:")) {
             const functionNode = node.child(0); // identifier or member_expression
-            if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+            if (functionNode && functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
               const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
               edits.push({ pos: node.startIndex, text: comment });
             }
           }
         } else {
           const functionNode = node.child(0); // identifier or member_expression
-          if (functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
+          if (functionNode && functionNode.type === "identifier" && this.internalFunctions.has(functionNode.text)) {
             const comment = this.miniSLAnnotatorGenerator.getInvokeStatement(node.text) + "\n";
             edits.push({ pos: node.startIndex, text: comment });
           }
@@ -389,7 +402,6 @@ class Annotator {
 
   checkDeclaredValue(nodes: SyntaxNode[]): void {
     const node = nodes[0];
-    let value: boolean = null;
     let isParameter: boolean = false;
 
     if (!node || node.type !== "identifier") {
@@ -441,7 +453,7 @@ class Annotator {
   }
 
   isAncestorOfParent(ancestorNode: SyntaxNode, descendantNode: SyntaxNode): boolean {
-    let current = descendantNode;
+    let current: SyntaxNode | null = descendantNode;
 
     while (current !== null) {
       if (current.id === ancestorNode.id) {
@@ -500,7 +512,7 @@ class Annotator {
     }
   }
 
-  private isSafe(node: SyntaxNode, safe: SyntaxNode = null): boolean {
+  private isSafe(node: SyntaxNode, safe?: SyntaxNode): boolean {
     const invalidTypes = [
       "arrow_function",
       "function",
@@ -598,8 +610,15 @@ class Annotator {
         return this.evaluateExpression(node.namedChildren[0]);
 
       case "binary_expression": {
-        const left = this.evaluateExpression(node.childForFieldName("left"));
-        const right = this.evaluateExpression(node.childForFieldName("right"));
+        const leftNode = node.childForFieldName("left");
+        const rightNode = node.childForFieldName("right");
+        
+        if (!leftNode || !rightNode) {
+          return null;
+        }
+        
+        const left = this.evaluateExpression(leftNode);
+        const right = this.evaluateExpression(rightNode);
         const operator = node.childForFieldName("operator")?.text ?? this.extractOperator(node);
 
         if (left === null || right === null) {
@@ -660,29 +679,32 @@ class Annotator {
   }
 
 
-  collectInternalFunctions(node) {
+  collectInternalFunctions(node: SyntaxNode) {
     const stack: Parser.SyntaxNode[] = [node];
-    let currentFunction: string = null;
+    let currentFunction: string | null = null;
 
     while (stack.length > 0) {
       const currentNode = stack.pop();
-
-      //salvo commenti e loro posizione
-      if (currentNode.type === "comment") {
-        this.commentLines.add(currentNode);
-        if (currentNode.text.includes("miniSL:")) {
-          this.internalFunctions.get(currentFunction).push(currentNode);
-        }
-      }
 
       if (!currentNode) {
         continue;
       }
 
+      //salvo commenti e loro posizione
+      if (currentNode.type === "comment") {
+        this.commentLines.add(currentNode);
+        if (currentNode.text.includes("miniSL:") && currentFunction) {
+          const functionNodes = this.internalFunctions.get(currentFunction);
+          if (functionNodes) {
+            functionNodes.push(currentNode);
+          }
+        }
+      }
+
       if (currentNode.type === "function_declaration") {
         const nameNode = currentNode.childForFieldName("name");
-        currentFunction = nameNode.text;
         if (nameNode) {
+          currentFunction = nameNode.text;
           this.internalFunctions.set(nameNode.text, []);
         }
       }
@@ -693,7 +715,7 @@ class Annotator {
 
   getForEndIndex(condition: Parser.SyntaxNode): string {
     if (condition) {
-      let valueNode;
+      let valueNode: SyntaxNode | null;
 
       if (condition.type === "binary_expression") {
         valueNode = condition.child(2); // RHS of binary expression
@@ -701,7 +723,7 @@ class Annotator {
         throw new Error("Error: For statement condition is not a binary expression, i can't handle it.");
       }
 
-      if (!this.isFunctionCall(valueNode)) {
+      if (valueNode && !this.isFunctionCall(valueNode)) {
         return valueNode.text;
       } else {
         throw new Error("Error: endIndex in For statement is a function call.");
@@ -712,17 +734,17 @@ class Annotator {
 
   getForStartIndex(initializer: Parser.SyntaxNode): string {
     if (initializer) {
-      let valueNode;
+      let valueNode: SyntaxNode | null | undefined;
 
       if (initializer.type === "lexical_declaration" || initializer.type === "variable_declaration") {
         const declarator = initializer.namedChild(0);
         valueNode = declarator?.childForFieldName("name");
       } else if (initializer.type === "assignment_expression") {
         const leftNode = initializer.childForFieldName('left'); // LHS of assignment
-        valueNode = leftNode.type === "identifier" ? leftNode : null; // identifier or member_expression
+        valueNode = leftNode && leftNode.type === "identifier" ? leftNode : null; // identifier or member_expression
       }
 
-      if (!this.isFunctionCall(valueNode)) {
+      if (valueNode && !this.isFunctionCall(valueNode)) {
         return valueNode.text;
       } else {
         throw new Error("Error: startIndex in For statement is a function call.");
@@ -743,7 +765,8 @@ class Annotator {
     }
     // Caso annidato: x = a + myFunc()
     for (let i = 0; i < node.namedChildCount; i++) {
-      if (this.isFunctionCall(node.namedChild(i))) {
+      const child = node.namedChild(i);
+      if (child && this.isFunctionCall(child)) {
         return true;
       }
     }
@@ -770,7 +793,10 @@ class Annotator {
 
     const newIndent = indent + (isLast ? '    ' : '│   ');
     for (let i = 0; i < children.length; i++) {
-      result += this.printSyntaxTree(children[i], sourceCode, newIndent, i === children.length - 1);
+      const child = children[i];
+      if (child) {
+        result += this.printSyntaxTree(child, sourceCode, newIndent, i === children.length - 1);
+      }
     }
 
     return result;
@@ -858,20 +884,26 @@ class Annotator {
 
 type SyntaxNodePath = SyntaxNode[]; // Lista ordinata di nodi (percorso esecutivo)
 
-const filePath = "./inputCode/overviewExample.ts";
-// const filePath = "./inputCode/input4example.ts";
-const filePathConfig = "config.json";
-const annotator = new Annotator(filePath, filePathConfig);
-annotator.loadFile().then(() => {
-/*   console.log(annotator.getFileContent())
- */}).catch((error) => {
-  console.error('Error while loading the file:\n', error);
-});
+// CLI support
+async function main() {
+  const args = process.argv.slice(2);
+  const filePath = args[0] || "./inputCode/input.ts";
+  const filePathConfig = "config.json";
+  const outputPath = args[1] || "output.txt";
 
-annotator.annotate().then((data) => {
-  /*   console.log("Annotation completed.");
-    console.log(data); */
-  fs.writeFileSync("output.ts", data, 'utf-8');
-}).catch((error) => {
-  console.error('Error while annotating the file:\n', error);
-});
+  console.log(`Running annotator on file: ${filePath}, output: ${outputPath}`);
+
+  const annotator = new Annotator(filePath, filePathConfig);
+
+  try {
+    await annotator.loadFile();
+    const data = await annotator.annotate();
+    fs.writeFileSync(outputPath, data, 'utf-8');
+    console.log(`Annotation completed. Output written to: ${outputPath}`);
+  } catch (error) {
+    console.error('Error during annotation process:', error);
+    process.exit(1);
+  }
+}
+
+main().catch(console.error);

@@ -1,29 +1,59 @@
-namespace miniSL1 {
-    // miniSL: function main(deta,  length)
-function main(deta: string[], length: number): void {
-        // miniSL: for(i, length)
-for (let i = 0; i < length; i++) {
-            postMessage(deta, i);
+namespace miniSL {
+    // miniSL: function main(x,  y,  type)
+function main(x: number, y: number, type: boolean): void {
+        // miniSL: if(type)
+if (type) {
+            evaluateX(x);
+            // miniSL: invoke evaluateY(y)
+evaluateY(y);
+        } // miniSL: else
+else {
+            evaluateX(x);
         // miniSL: end
 }
-
-        printMessage(deta);
     // miniSL: end
 }
 
-    function printMessage(messages: string[]): void {
-        for (let i = 0; i < messages.length; i++) {
-            console.log("New " + i + " message: " + messages[i]);
+    function evaluateX(x: number): number {
+        if (x > 0) {
+            return 0;
         }
+        return 5;
     }
- 
-    function postMessage(messages: string[], position: number): void {
-        fetch("https://example.com/api/messages", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ message: messages[position] })
-        })
+
+    // miniSL: function evaluateY(y)
+function evaluateY(y: number): number {
+        y = 1 + y; 
+
+        // miniSL: if(1 + y > 0)
+if (y > 0) {
+            y = 1 + y;
+            // miniSL: if(1 + y > 0)
+if (y > 0) {
+                // miniSL: invoke generateNumber(y)
+                return generateNumber(y);
+            // miniSL: end
+}
+        } // miniSL: else
+else {
+            return 5;
+        // miniSL: end
+}
+
+        return 0;
+    // miniSL: end
+}
+
+    // miniSL: function generateNumber(y)
+function generateNumber(y:number): number {
+        // miniSL: call random()
+        return random();
+    // miniSL: end
+}
+
+    // miniSL: defCall random()
+    function random(): number {
+        console.log("Random external service called");
+        return Math.random();
     }
 }

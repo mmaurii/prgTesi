@@ -26,6 +26,8 @@ namespace miniSL {
         } else {
             return 5;
         }
+
+        return 0;
     }
 
     function generateNumber(y:number): number {
