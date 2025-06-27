@@ -12,9 +12,9 @@ build/
 */build/
 
 # Generated output files from the pipeline
-annotator/output.txt
-extractor/output.txt
-miniSLChecker/miniSLCode.txt
+# annotator/output.txt
+# extractor/output.txt
+# miniSLChecker/miniSLCode.txt
 
 # TypeScript compilation outputs
 *.js

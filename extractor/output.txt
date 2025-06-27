@@ -1,0 +1,14 @@
+service random : (void) -> void;
+
+(x, y, type) => {
+  if(type) {
+    if(1 + y > 0) {
+      if(1 + y > 0) {
+        call random()
+      }
+    } else {
+    }
+  } else {
+  }
+}
+

@@ -889,15 +889,16 @@ async function main() {
   const args = process.argv.slice(2);
   const filePath = args[0] || "./inputCode/input.ts";
   const filePathConfig = "config.json";
-  const outputPath = args[1] || "output.txt";
+  const outputPath ="output.txt";
+  const entryPoint = args[1] || "main";
 
-  console.log(`Running annotator on file: ${filePath}, output: ${outputPath}`);
+  console.log(`Running annotator on file: ${filePath}, output: ${outputPath}, entry point: ${entryPoint}`);
 
   const annotator = new Annotator(filePath, filePathConfig);
 
   try {
     await annotator.loadFile();
-    const data = await annotator.annotate();
+    const data = await annotator.annotate(entryPoint);
     fs.writeFileSync(outputPath, data, 'utf-8');
     console.log(`Annotation completed. Output written to: ${outputPath}`);
   } catch (error) {

@@ -77,15 +77,15 @@ Genera automaticamente le annotazioni MiniSL per il codice TypeScript.
 ```bash
 # Con Make
 make build-annotator
-make annotate INPUT_FILE=inputCode/input.ts
+make annotate INPUT_FILE=inputCode/input.ts ENTRY_POINT=main
 
 # Diretto
 cd annotator
 npm run build
-node dist/annotator.js inputCode/input.ts
+node dist/annotator.js inputCode/input.ts output.txt main
 ```
 
-**Note**: L'annotator prende in input file TypeScript parzialmente annotati (con solo `call` e `defCall`) e genera file completamente annotati salvati come `output.txt`.
+**Note**: L'annotator prende in input file TypeScript parzialmente annotati (con solo `call` e `defCall`), un entry point specifico, e genera file completamente annotati salvati come `output.txt`.
 
 ### 3. Checker
 Verifica la correttezza sintattica del codice MiniSL.
@@ -132,7 +132,7 @@ make pipeline ENTRY_POINT=myFunction
 **Manuale:**
 ```bash
 # Step 1: Annotazione completa (partial → complete annotations)
-make annotate
+make annotate ENTRY_POINT=main
 
 # Step 2: Estrazione MiniSL (complete annotations → MiniSL code)
 make extract INPUT_FILE=../annotator/output.txt ENTRY_POINT=main
@@ -151,7 +151,7 @@ make check
 | `make clean` | Pulisce i file di build |
 | `make setup` | Installazione + build completo |
 | `make pipeline` | Esegue la pipeline completa (annotate → extract → check) |
-| `make annotate` | Esegue l'annotator (partial → complete) |
+| `make annotate` | Esegue l'annotator con entry point specificato (partial → complete) |
 | `make extract` | Esegue l'extractor |
 | `make check` | Esegue il checker sull'output dell'extractor |
 | `make check-standalone` | Esegue il checker su `miniSLCode.txt` |
@@ -175,10 +175,10 @@ Puoi specificare file di input e parametri personalizzati:
 ```bash
 # Con Make
 make extract INPUT_FILE=../annotator/output.txt ENTRY_POINT=myFunction
-make annotate INPUT_FILE=inputCode/myfile.ts
+make annotate INPUT_FILE=inputCode/myfile.ts ENTRY_POINT=myFunction
 
-# File di input predefinito (annotator)
-make annotate  # usa inputCode/input.ts
+# File di input predefinito (annotator) con entry point personalizzato
+make annotate ENTRY_POINT=myFunction
 
 # Pipeline con entry point personalizzato
 make pipeline ENTRY_POINT=myFunction
@@ -353,7 +353,3 @@ prgTesi/
 ├── package.json              # Configurazione root del progetto
 └── README.md                 # Documentazione (questo file)
 ```
-
-## License
-
-[Specificare licenza appropriata per il progetto]

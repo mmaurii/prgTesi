@@ -36,7 +36,7 @@ class Extractor {
     //flag to stop finding function annotations
     entrypoint: string | null = null;
 
-    public async extract(entryPoint: string = "main", path: string = this.annotatedCodeFilePath): Promise<string | null> {
+    public async extract(entryPoint: string = "main", path: string): Promise<string | null> {
         let miniSLCode = "\n";
         this.entrypoint = entryPoint;
 
@@ -615,7 +615,7 @@ async function main() {
         process.exit(1);
     }
     
-    const filePath = args[0];
+    const filePath = args[0] || "./../annotator/output.txt";
     const entryPoint = args[1] || "main";
     const outputPath = "output.txt";
     
