@@ -1,4 +1,4 @@
-# MiniSL Processor Makefile for Windows
+# miniSL Processor Makefile for Windows
 # Usage: make [target]
 # Requires: Node.js, npm, make (or nmake)
 
@@ -6,7 +6,7 @@
 
 # Default target
 help:
-	@echo MiniSL Processor - Available targets:
+	@echo miniSL Processor - Available targets:
 	@echo.
 	@echo   help           - Show this help message
 	@echo   install        - Install all dependencies
@@ -101,14 +101,14 @@ check-standalone:
 
 # Complete pipeline
 pipeline: build
-	@echo Running complete MiniSL pipeline...
+	@echo Running complete miniSL pipeline...
 	@echo Step 1: Annotating (partial annotations to complete annotations)...
 	$(MAKE) annotate $(if $(INPUT_FILE),INPUT_FILE=$(INPUT_FILE)) ENTRY_POINT=$(ENTRY_POINT)
-	@echo Step 2: Extracting (complete annotations to MiniSL code with integrated checking)...
+	@echo Step 2: Extracting (complete annotations to miniSL code with integrated checking)...
 	$(MAKE) extract ENTRY_POINT=$(ENTRY_POINT)
 	@echo Step 3: Final syntax checking with checker...
 	$(MAKE) check
-	@echo Pipeline completed successfully - MiniSL code generated, checked, and verified
+	@echo Pipeline completed successfully - miniSL code generated, checked, and verified
 
 # Setup - Install and build everything
 setup: install build
