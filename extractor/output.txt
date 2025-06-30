@@ -1,13 +1,6 @@
-service random : (void) -> void;
 
-(x, y, type) => {
-  if(type) {
-    if(1 + y > 0) {
-      if(1 + y > 0) {
-        call random()
-      }
-    } else {
-    }
+(x, y, z, type) => {
+  if(6 > 0) {
   } else {
   }
 }

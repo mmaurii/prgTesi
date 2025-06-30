@@ -22,23 +22,17 @@ help:
 	@echo   build-checker       - Build checker
 	@echo.
 	@echo Execution targets:
-	@echo   extract        - Run extractor on annotator/output.txt (saves output to output.txt)
-	@echo   annotate       - Run annotator on input.ts with entry point (saves output to output.txt)
-	@echo   check          - Run checker on specified MiniSL file (default: extractor output)
-	@echo   check-standalone - Run checker on default miniSLCode.txt
+	@echo   extract        - Run extractor on annotator/output.txt with default entry point (saves output to output.txt)
+	@echo   annotate       - Run annotator on input.ts with default entry point (saves output to output.txt)
+	@echo   check          - Run checker on default miniSL file
+	@echo   check-standalone - Run checker on miniSLCode.txt
 	@echo   pipeline       - Run complete pipeline (annotate -^> extract -^> check)
 	@echo.
 	@echo Additional options:
-	@echo   INPUT_FILE_ANNOTATOR=^<path^> - Specify input file for annotator (default: ./inputCode/input.ts)
-	@echo   INPUT_FILE_EXTRACTOR=^<path^> - Specify input file for extractor (default: ./../annotator/output.txt)
-	@echo   INPUT_FILE_CHECKER=^<path^>   - Specify MiniSL file for checker verification (default: extractor\output.txt)
-	@echo   ENTRY_POINT=^<name^>          - Specify entry point for annotator and extractor (default: main)
+	@echo   INPUT_FILE=^<path^>  - Specify input file (each component uses its own default if not specified)
+	@echo   ENTRY_POINT=^<name^> - Specify entry point for annotator and extractor (default: main)
 
 # Default variables  
-INPUT_FILE_EXTRACTOR ?= ./../annotator/output.txt
-INPUT_FILE_ANNOTATOR ?= ./inputCode/input.ts
-INPUT_FILE_CHECKER ?= extractor\output.txt
-ENTRY_POINT ?= main
 
 # Install all dependencies
 install: install-root install-extractor install-annotator install-checker
@@ -90,17 +84,16 @@ clean:
 
 # Execution targets
 extract:
-	@echo Running extractor on $(INPUT_FILE_EXTRACTOR)...
-	@cd extractor && node dist\extractor.js $(INPUT_FILE_EXTRACTOR) $(ENTRY_POINT)
+	@echo Running extractor$(if $(INPUT_FILE), on $(INPUT_FILE),)...
+	@cd extractor && node dist\extractor.js $(if $(INPUT_FILE),$(INPUT_FILE),./../annotator/output.txt) $(ENTRY_POINT)
 
 annotate:
-	@echo Running annotator on $(INPUT_FILE_ANNOTATOR) with entry point $(ENTRY_POINT)...
-	@cd annotator && node dist\annotator.js $(INPUT_FILE_ANNOTATOR) $(ENTRY_POINT)
+	@echo Running annotator$(if $(INPUT_FILE), on $(INPUT_FILE),) with entry point $(ENTRY_POINT)...
+	@cd annotator && node dist\annotator.js $(if $(INPUT_FILE),$(INPUT_FILE),./inputCode/input.ts) $(ENTRY_POINT)
 
 check:
-	@echo Running checker on $(INPUT_FILE_CHECKER)...
-	@if exist "$(INPUT_FILE_CHECKER)" (echo File found: $(INPUT_FILE_CHECKER)) else (echo Error: $(INPUT_FILE_CHECKER) not found && exit /b 1)
-	@cd miniSLChecker && node dist\checker.js "..\$(INPUT_FILE_CHECKER)"
+	@echo Running checker$(if $(INPUT_FILE), on $(INPUT_FILE),)...
+	@cd miniSLChecker && node dist\checker.js $(if $(INPUT_FILE),"..\$(INPUT_FILE)","..\extractor\output.txt")
 
 check-standalone:
 	@echo Running checker on default miniSLCode.txt...
@@ -110,7 +103,7 @@ check-standalone:
 pipeline: build
 	@echo Running complete MiniSL pipeline...
 	@echo Step 1: Annotating (partial annotations to complete annotations)...
-	$(MAKE) annotate INPUT_FILE=$(INPUT_FILE_ANNOTATOR) ENTRY_POINT=$(ENTRY_POINT)
+	$(MAKE) annotate $(if $(INPUT_FILE),INPUT_FILE=$(INPUT_FILE)) ENTRY_POINT=$(ENTRY_POINT)
 	@echo Step 2: Extracting (complete annotations to MiniSL code with integrated checking)...
 	$(MAKE) extract ENTRY_POINT=$(ENTRY_POINT)
 	@echo Step 3: Final syntax checking with checker...

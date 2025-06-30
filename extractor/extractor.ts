@@ -610,11 +610,6 @@ class Extractor {
 async function main() {
     const args = process.argv.slice(2);
     
-    if (args.length < 1) {
-        console.error("Usage: node dist/extractor.js <annotated_file_path> [entrypoint]");
-        process.exit(1);
-    }
-    
     const filePath = args[0] || "./../annotator/output.txt";
     const entryPoint = args[1] || "main";
     const outputPath = "output.txt";
