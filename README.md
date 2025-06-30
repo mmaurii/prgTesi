@@ -1,6 +1,6 @@
-# MiniSL Processor
+# Compilatore TypeScript -> miniSL
 
-Un sistema completo per l'elaborazione del linguaggio MiniSL composto da tre componenti principali: **Annotator**, **Extractor** e **Checker**.
+Un sistema completo per la traduzione di TypeScript nel linguaggio MiniSL composto da tre componenti principali: **Annotator**, **Extractor** e **Checker**.
 
 ## Struttura del Progetto
 
@@ -32,6 +32,7 @@ prgTesi/
 ```
 
 ## Installazione
+Si consiglia l'utilizzo di VS Code, in quanto sicuramente supportato.
 
 ### Prerequisiti
 - Node.js (versione 16 o superiore)
@@ -256,7 +257,7 @@ make dev-checker
 make test    # Testa tutti i componenti con file di esempio
 ```
 
-**Il comando test è stato verificato e funziona correttamente.** Esegue:
+Il comando test Esegue:
 1. Build di tutti i componenti
 2. Test dell'annotator con file di default
 3. Test dell'extractor sull'output dell'annotator
@@ -266,62 +267,7 @@ make test    # Testa tutti i componenti con file di esempio
 **Output di esempio del test:**
 - Annotator: genera annotazioni complete e salva in `output.txt`
 - Extractor: estrae codice MiniSL e salva in `output.txt`
-- Checker: verifica sintattica con messaggio "Checking completed successfully"
-
-## Test e Validazione del Sistema
-
-Il sistema MiniSL Processor è stato completamente testato e validato:
-
-### Test Effettuati
-- ✅ **Build completa**: Tutti i componenti si compilano correttamente
-- ✅ **Pipeline completa**: Annotator → Extractor → Checker funziona end-to-end
-- ✅ **Comandi singoli**: Ogni componente funziona indipendentemente
-- ✅ **Parametri personalizzati**: Tutti i parametri di input sono configurabili
-- ✅ **Gestione errori**: File inesistenti e entry point non validi vengono gestiti
-- ✅ **Compatibilità Windows**: Testato su Windows con PowerShell
-
-### Test dei Comandi
-Tutti i seguenti comandi sono stati testati con successo:
-```bash
-make help           # ✅ Mostra documentazione completa
-make build          # ✅ Compila tutti i componenti
-make annotate       # ✅ Genera annotazioni complete
-make extract        # ✅ Genera codice MiniSL
-make check          # ✅ Verifica sintassi MiniSL
-make check-standalone # ✅ Verifica file predefinito
-make pipeline       # ✅ Pipeline completa funzionante
-make test           # ✅ Test automatico di tutti i componenti
-make dev-*          # ✅ Comandi di sviluppo rapido
-```
-
-### Test con Parametri Personalizzati
-```bash
-# ✅ File personalizzati testati
-make check INPUT_FILE_CHECKER=miniSLChecker\miniSLCode.txt
-
-# ✅ Entry point personalizzati testati
-make annotate ENTRY_POINT=customEntry  # Gestisce errori correttamente
-
-# ✅ Pipeline con parametri personalizzati
-make pipeline ENTRY_POINT=main  # Funziona end-to-end
-```
-
-## File di Configurazione
-
-Ogni componente ha la propria configurazione:
-- `extractor/config.json` - Configurazione per l'estrazione
-- `annotator/config.json` - Configurazione per l'annotazione
-- `miniSLChecker/` - Grammatica MiniSL
-
-## Struttura Output
-
-L'output viene generato nelle seguenti posizioni:
-- `extractor/dist/` - Codice compilato dell'extractor
-- `annotator/dist/` - Codice compilato dell'annotator
-- `miniSLChecker/dist/` - Codice compilato del checker
-- `annotator/output.txt` - Annotazioni complete generate dall'annotator
-- `extractor/output.txt` - Codice MiniSL generato dall'extractor
-- `miniSLChecker/miniSLCode.txt` - Codice MiniSL copiato per la verifica
+- Checker: verifica sintattica con messaggio "Checking completed successfully" o errori riscontrati
 
 ## File Importanti
 
@@ -431,34 +377,4 @@ prgTesi/
 ├── Makefile                  # Automazione build e pipeline
 ├── package.json              # Configurazione root del progetto
 └── README.md                 # Documentazione (questo file)
-```
-
-## Riepilogo dei Test Completati
-
-### Sistema Completamente Funzionante ✅
-
-Il **MiniSL Processor** è stato completamente testato e validato. Tutti i componenti funzionano correttamente sia singolarmente che in pipeline:
-
-**Risultati dei Test:**
-- **100% successo** su tutti i comandi Make
-- **Pipeline completa** testata e funzionante
-- **Parametri personalizzati** completamente supportati
-- **Gestione errori** implementata e testata
-- **Compatibilità Windows/PowerShell** verificata
-
-**Sistema Pronto per:**
-- ✅ Utilizzo in produzione
-- ✅ Sviluppo e debugging
-- ✅ Testing automatico
-- ✅ Integrazione in workflow più ampi
-- ✅ Documentazione di tesi
-
-**Comando di Test Rapido:**
-```bash
-make test    # Testa l'intero sistema in 30 secondi
-```
-
-**Pipeline Pronta all'Uso:**
-```bash
-make pipeline    # Processo completo: TypeScript → MiniSL verificato
 ```
