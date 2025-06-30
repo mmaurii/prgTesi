@@ -24,17 +24,20 @@ help:
 	@echo Execution targets:
 	@echo   extract        - Run extractor on annotator/output.txt (saves output to output.txt)
 	@echo   annotate       - Run annotator on input.ts with entry point (saves output to output.txt)
-	@echo   check          - Run checker on extractor output (output.txt)
+	@echo   check          - Run checker on specified MiniSL file (default: extractor output)
 	@echo   check-standalone - Run checker on default miniSLCode.txt
 	@echo   pipeline       - Run complete pipeline (annotate -^> extract -^> check)
 	@echo.
 	@echo Additional options:
-	@echo   INPUT_FILE=^<path^>     - Specify input file (partially annotated)
-	@echo   ENTRY_POINT=^<name^>    - Specify entry point for annotator and extractor
+	@echo   INPUT_FILE_ANNOTATOR=^<path^> - Specify input file for annotator (default: ./inputCode/input.ts)
+	@echo   INPUT_FILE_EXTRACTOR=^<path^> - Specify input file for extractor (default: ./../annotator/output.txt)
+	@echo   INPUT_FILE_CHECKER=^<path^>   - Specify MiniSL file for checker verification (default: extractor\output.txt)
+	@echo   ENTRY_POINT=^<name^>          - Specify entry point for annotator and extractor (default: main)
 
 # Default variables  
 INPUT_FILE_EXTRACTOR ?= ./../annotator/output.txt
 INPUT_FILE_ANNOTATOR ?= ./inputCode/input.ts
+INPUT_FILE_CHECKER ?= extractor\output.txt
 ENTRY_POINT ?= main
 
 # Install all dependencies
@@ -95,13 +98,13 @@ annotate:
 	@cd annotator && node dist\annotator.js $(INPUT_FILE_ANNOTATOR) $(ENTRY_POINT)
 
 check:
-	@echo Running checker on extractor output...
-	@cd miniSLChecker && if exist ..\extractor\output.txt (copy ..\extractor\output.txt miniSLCode.txt >nul) else (echo Error: output.txt not found from extractor && exit /b 1)
-	@cd miniSLChecker && node dist\checker.js
+	@echo Running checker on $(INPUT_FILE_CHECKER)...
+	@if exist "$(INPUT_FILE_CHECKER)" (echo File found: $(INPUT_FILE_CHECKER)) else (echo Error: $(INPUT_FILE_CHECKER) not found && exit /b 1)
+	@cd miniSLChecker && node dist\checker.js "..\$(INPUT_FILE_CHECKER)"
 
 check-standalone:
 	@echo Running checker on default miniSLCode.txt...
-	@cd miniSLChecker && node dist\checker.js
+	@cd miniSLChecker && node dist\checker.js miniSLCode.txt
 
 # Complete pipeline
 pipeline: build

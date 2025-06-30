@@ -32,6 +32,15 @@ async function main() {
   
   try {
     let code = fs.readFileSync(codeFile, 'utf-8');
+    
+    // Debug info
+    console.log(`File size: ${code.length} characters`);
+    
+    if (code.trim().length === 0) {
+      console.error('ERROR: Input file is empty!');
+      process.exit(1);
+    }
+    
     const checker = new Checker(code);
     await checker.check();
     console.log('Checking completed successfully.');

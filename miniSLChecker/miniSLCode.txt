@@ -11,4 +11,3 @@ service random : (void) -> void;
   } else {
   }
 }
-

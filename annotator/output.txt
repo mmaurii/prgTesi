@@ -1,12 +1,18 @@
 namespace miniSL {
-    function main(x: number, y: number, type: boolean): void {
-        if (type) {
+    // miniSL: function main(x,  y,  type)
+function main(x: number, y: number, type: boolean): void {
+        // miniSL: if(type)
+if (type) {
             evaluateX(x);
-            evaluateY(y);
-        } else {
+            // miniSL: invoke evaluateY(y)
+evaluateY(y);
+        } // miniSL: else
+else {
             evaluateX(x);
-        }
-    }
+        // miniSL: end
+}
+    // miniSL: end
+}
 
     function evaluateX(x: number): number {
         if (x > 0) {
