@@ -19,7 +19,7 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/extractor/dist/extractor.js",
-      "args": ["./../annotator/output.ts", "main"],
+      "args": ["./../annotator/output.txt", "main"],
       "cwd": "${workspaceFolder}/extractor",
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"],
